@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت پژوهش</title>
+    <link rel="stylesheet" href="https://c.vazirweb.ir/cdn/vazirmatn/vazirmatn.css">
+    <script src="https://c.vazirweb.ir/cdn/tailwind/3.4.10/tailwind.play.min.js"></script>
+    <style>body { font-family: Vazirmatn, sans-serif; }</style>
+</head>
+<body class="bg-gray-100 p-4 min-h-screen">
+    <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <h1 class="text-2xl font-bold text-gray-800">نتایج پژوهش</h1>
+            <div class="flex gap-2">
+                <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="جستجو در نتایج..." class="border rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="exportCSV()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition">خروجی CSV</button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-right border-collapse" id="resultsTable">
+                <thead>
+                    <tr class="bg-gray-50 border-b text-gray-600 text-sm">
+                        <th class="p-3">تاریخ</th>
+                        <th class="p-3">جنسیت</th>
+                        <th class="p-3">سن</th>
+                        <th class="p-3">تحصیلات</th>
+                        <th class="p-3">VAS A</th>
+                        <th class="p-3">VAS B</th>
+                        <th class="p-3">پذیرش A</th>
+                        <th class="p-3">پذیرش B</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="text-sm text-gray-700">
+                    <!-- ردیف‌ها توسط جاوااسکریپت پر می‌شوند -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function loadData() {
+            const response = await fetch('http://91.212.174.223:9090/api/data');
+            const data = await response.json();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = data.map(row => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3">${row.date}</td>
+                    <td class="p-3">${row.gender}</td>
+                    <td class="p-3">${row.age}</td>
+                    <td class="p-3">${row.education}</td>
+                    <td class="p-3 font-bold text-blue-600">${row.vas_a}</td>
+                    <td class="p-3 font-bold text-purple-600">${row.vas_b}</td>
+                    <td class="p-3">${row.acc_a}</td>
+                    <td class="p-3">${row.acc_b}</td>
+                </tr>
+            `).join('');
+            window.fullData = data;
+        }
+
+        function searchTable() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const rows = document.querySelectorAll("#tableBody tr");
+            rows.forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+            });
+        }
+
+        function exportCSV() {
+            if (!window.fullData) return;
+            const headers = Object.keys(window.fullData[0]).join(",");
+            const rows = window.fullData.map(row => Object.values(row).join(","));
+            const csvContent = "\ufeff" + [headers, ...rows].join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", "research_results.csv");
+            link.click();
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
