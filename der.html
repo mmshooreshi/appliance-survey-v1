@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آزمون سیستمیک ۱ - برنامه تمرینی</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/vazirmatn@5.2.8/400.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 antialiased p-4 md:p-8">
+    
+    <div id="root" class="max-w-3xl mx-auto min-h-[60vh] flex flex-col fade-in">
+        <div class="flex items-center justify-center min-h-[50vh] text-lg text-slate-500">
+            در حال آماده‌سازی...
+        </div>
+    </div>
+
+    <script type="text/data" id="raw-questions-data">
+**۱. در کدام یک از شرایط زیر نوتروپنی میتواند مشاهده شود؟**
+۱) افراد سیگاری
+۲) شرایط تخریب بافتی
+۳) ورزشهای رزمی سنگین
+۴) مصرف طولانی قرص ضد تیروئید ⭐
+🧠 **چرا؟** داروهای ضدتیروئید (مثل متی‌مازول و PTU) مغز استخوان را سرکوب کرده و باعث کاهش تولید نوتروفیل (آگرانولوسیتوز) می‌شوند.
+⚠️ **تله تستی:** افراد سیگاری به دلیل هیپوکسی دچار «پلی‌سایتمی» می‌شوند نه نوتروپنی! ورزش سنگین هم باعث «نوتروفیلی» (آزاد شدن گلبول‌های سفید چسبیده به دیواره عروق) می‌شود.
+
+**۲. کدامیک از تظاهرات دهانی زیر بهمراه وجود تب جزء علایم مشخصه بیماری (نوتروپنی دوره‌ای) است؟**
+۱) افزایش حجم لثه
+۲) کاندیدیازیس
+۳) خونریزی
+۴) لقی دندان ⭐
+🧠 **تصویرسازی:** کودک تب‌دار + افت شدید و دوره‌ای نوتروفیل‌ها = باکتری‌ها بدون مقاومت به پریودنتال حمله می‌کنند ⬅️ تخریب سریع استخوان ⬅️ **لقی دندان‌ها**.
+
+**۳. کدام مورد جز شایع ترین تظاهرات دهانی در بیماران مبتلا به لوسمی حاد نمی باشد؟**
+۱) سینوزیت ماگزیلا ⭐
+۲) خونریزی
+۳) زخم دهانی
+۴) افزایش حجم لثه
+🔗 **لینک ذهنی لوسمی:** لوسمی (مخصوصا نوع AML) = سلول‌های سرطانی در لثه رسوب می‌کنند (افزایش حجم) + پلاکت کم است (خونریزی) + ایمنی ضعیف است (زخم). سینوزیت ربطی به تظاهرات اولیه ندارد.
+
+**۴. در آقای مبتلا به عفونتهای انگلی گوارش کدام یک از انواع آنمی بدلیل این عفونت ممکن است بروز کند؟**
+۱) آنمی تالاسمی
+۲) آنمی فقر آهن ⭐
+۳) کمبود فولات
+۴) هموگلوبینمی حمله ای شبانه
+🧠 **مکانیسم:** انگل‌های روده‌ای (مثل کرم قلاب‌دار) خونخوار هستند. خونریزی مزمن گوارشی = از دست رفتن آهن = آنمی فقر آهن.
+⚠️ **تله:** اگر سوال در مورد انگل "دیفیلوبوتریوم لاتوم" (کرم ماهی) بود، جواب می‌شد کمبود B12 (مگالوبلاستیک).
+
+**۵. بیماری با شکایت از خونریزی لثه به دندانپزشک مراجعه کرده است. در تاریخچه شکایت از سر درد و مشکلات بینایی دارد. تشخیص مناسب چیست؟**
+۱) پلی سایتمی ورا ⭐
+۲) کمبود ویتامین B12
+۳) لوسمی حاد میلوئیدی
+۴) سیکل سل آنمی
+🧠 **کدگذاری علائم:** خون غلیظ (پلی‌سایتمی) ⬅️ گیر کردن خون در عروق مغز (سردرد) + گیر کردن در عروق چشم (تاری دید) + پرخونی عروق لثه (خونریزی).
+
+**۶. در بیمار مبتلا به فشار خون که تحت درمان با داروی دیورتیک می باشد اریتروسیتوزیس به چه دلیل ممکن است ایجاد شود؟**
+۱) کاهش تولید اریتروپویتین 
+۲) کاهش حجم پلاسما ⭐
+۳) افزایش توده سلولی
+۴) افزایش هماتوکریت
+🧠 **چرا؟** دیورتیک (ادرارآور) = آب بدن کم می‌شود = پلاسما کاهش می‌یابد ⬅️ تعداد گلبول‌های قرمز ثابت است اما چون آب خون کم شده، به طور *نسبی* غلیظ به نظر می‌رسد (اریتروسیتوز نسبی).
+
+**۷. رقیق شدن لامینا دورا در کدامیک از ضایعات زیر مشاهده میشود؟**
+۱) لنفوم هوچکین
+۲) لوسمی حاد
+۳) تالاسمی ماژور ⭐
+۴) آنمی سیکل سل
+👀 **حافظه تصویری (رادیوگرافی):**
+▪️ تالاسمی ماژور ⬅️ مغز استخوان برای جبران کم‌خونی به شدت بزرگ می‌شود ⬅️ فشار به کورتکس ⬅️ **نازک شدن لامینا دورا** و نمای "مو برس مانند" (Hair-on-end).
+▪️ سیکل سل ⬅️ نمای ترابکول‌های "نردبانی" (Stepladder).
+
+**۸. در مشاهده جواب آزمایش بیماری موارد زیر گزارش شده است، تفسیر آن ها مطرح کننده کدام یک از شرایط زیر می باشد؟**
+۱) آنمی سیکل سل
+۲) آنمی آپلاستیک ⭐
+۳) آنمی پرنسیوز
+۴) اریتروسیتوز نسبی
+⚠️ **نکته مخفی سوال:** اگر در آزمایش کلمه **Pancytopenia** (کاهش همزمان RBC, WBC و Platelet) را دیدید، مستقیماً به آنمی آپلاستیک (از کار افتادن کل کارخانه مغز استخوان) شک کنید.
+
+**۹. بمنظور پیشگیری از خونریزی در بیمار مصرف کننده وارفارین که امکان قطع دارو وجود ندارد، برای کشیدن دندان چه اقدامی انجام می دهید؟**
+۱) تجویز کنسانتره فاکتور هشت بعد از کشیدن
+۲) تزریق ویتامین K دوازده تا بیست و چهار ساعت قبل از کشیدن دندان ⭐
+۳) تزریق کرایوپرسیپیتیت نیم ساعت قبل از کار
+۴) تزریق پروتامین سولفات سه تا چهار ساعت قبل از کار
+🔗 **پادزهرها را حفظ کنید:**
+مسمومیت با وارفارین ⬅️ ویتامین K
+مسمومیت با هپارین ⬅️ پروتامین سولفات
+بیمار هموفیلی A ⬅️ فاکتور ۸ یا کرایوپرسیپیتیت
+
+**۱۰. در آبشار انعقادی مدل بر اساس سلولی (cell based model) کمپلکس فاکتور بافتی – فاکتور 7 فعال منجر به فعال شدن کدام میشود؟**
+۱) فعال شدن فاکتور 10 و 9 و تولید ترومبین ⭐
+۲) فعال شدن فاکتور 11 و فعال شدن پلاکت
+۳) فعال شدن کمپلکس فاکتور 2، 5 و 10 فعال
+۴) فعال شدن کمپلکس فاکتور 10، 9 فعال و 8 فعال
+🧠 **چرا؟** در فاز Initiation (شروع)، فاکتور بافتی (TF) با فاکتور 7 باند می‌شود و این کمپلکس هم مسیر مشترک (10) و هم مسیر داخلی (9) را استارت می‌زند تا مقدار کمی ترومبین تولید شود.
+
+**۱۱. برای بیماری که تحت درمان با هپارین می باشد بمنظور ارزیابی احتمال خونریزی قبل از جراحی چه تستی را درخواست میشود؟**
+۱) PT
+۲) PTT (زمان نسبی ترومبوپلاستین) ⭐
+۳) زمان ترومبوپلاستین
+۴) زمان سیلان
+🔑 **رمزگذاری ذهنی (بسیار مهم):**
+حروف **PTT** دو تا حرف **T** دارد که شبیه پایه‌های حرف **H** هستند ⬅️ **H**eparin (هپارین).
+حرف **PT** ⬅️ برای ارزیابی مسیر خارجی و داروی وارفارین است.
+
+**۱۲. در کدام یک از شرایط زیر ممکن است نوتروفیلیا مشاهده شود؟**
+۱) دانشجو در بازه امتحانات پایان ترم ⭐ (استرس حاد)
+۲) یک تا دو هفته بعد از شیمی درمانی (نوتروپنی میدهد)
+۳) بیمار تحت درمان با داروهای تیروئیدی (نوتروپنی میدهد)
+۴) بیمار مبتلا به آنفولانزای ویروسی (لنفوسیتوز میدهد)
+🧠 **مکانیسم استرس:** استرس (امتحانات) = ترشح اپی‌نفرین = دی‌مارژیناسیون (کنده شدن نوتروفیل‌ها از جدار عروق و ورود به جریان خون) = نوتروفیلی کاذب.
+
+**۱۳. کودکی با تظاهرات دهانی زخم های آفتوس لایک شدید و خونریزی از لثه و تب مراجعه کرده است. کدام یک از بیماریهای زیر در تشخیص افتراقی مطرح می باشد؟**
+۱) آنمی فقر آهن
+۲) لوسمی حاد ⭐
+۳) لنفوم نان هوچکین
+۴) تالاسمی ماژور
+⚠️ **مثلث مرگبار لوسمی در کودکان:** تب (کاهش WBC سالم) + خونریزی (کاهش پلاکت) + زخم‌های شدید (عفونت فرصت‌طلب).
+
+**۱۴. در بیماریکه 2 ساعت قبل دیالیز شده و نیاز به کشیدن اورژانس دارد، کدام اقدام باید انجام شود؟**
+۱) تجویز پلاسمای منجمد تازه
+۲) تزریق کرایوپرسیپیتیت
+۳) تزریق پروتامین سولفات ⭐
+۴) تزریق ویتامین K
+🧠 **چرا؟** در دستگاه دیالیز برای جلوگیری از لخته شدن خون از **هپارین** استفاده می‌شود. پادزهر هپارین چیست؟ پروتامین سولفات! (لینک به سوال ۹).
+
+**۱۵. خانم 60 ساله... تورم روی ریج... نمای پانچ اوت (punch out) در رادیوگرافی... دردهای استخوانی. تشخیص؟**
+۱) نوتروپنی اکتسابی
+۲) لنفوم هوچکین
+۳) میلوم مولتی پل ⭐
+۴) پلی سایتمی ورا
+👀 **کلمات کلیدی در صورت سوال:** نمای Punch out (سوراخ سوراخ شدن استخوان) + درد استخوانی در فرد مسن = همیشه **Multiple Myeloma** (سرطان پلاسماسل‌ها).
+
+**۲۰. وجود کدام یک از ویژگیهای زیر در زخم های دهانی مطرح کننده نقایص سیستم ایمنی می باشد؟**
+۱) محل حضور زخم
+۲) اندازه بزرگ زخم
+۳) تعداد زخم در هر بار
+۴) فقدان هاله التهابی ⭐
+🧠 **مکانیسم ایمونولوژیک:** هاله قرمز (اریتم) دور زخم به خاطر هجوم نوتروفیل‌ها و التهاب است. اگر سیستم ایمنی نقص داشته باشد (مثل نوتروپنی)، التهابی شکل نمی‌گیرد، پس زخم هاله قرمز رنگ ندارد!
+
+**۲۲. طبق پروتکل جدید تمام موارد زیر امکان ابتلا به اندوکاردیت را بالا میبرد بجز؟**
+۱) پرولاپس میترال ⭐
+۲) دریچه های پروتزی قلب
+۳) پیوند قلب (در صورت وجود مشکل دریچه‌ای)
+۴) سابقه قبلی اندوکاردیت
+⚠️ **آپدیت علمی:** بر اساس پروتکل‌های جدید AHA، پرولاپس دریچه میترال (MVP) دیگر نیازی به پروفیلاکسی آنتی‌بیوتیکی ندارد!
+
+**۲۷. در مورد فعالیت پلاکتی در تشکیل لخته کدام گزینه صحیح نمی باشد؟**
+۱) در مدل ملکولی کمپلکس تیناز و پروترومبیناز بر روی پلاکت فعال شده تشکیل میشوند.
+۲) آدنوزین دی فسفات از سلولهای اندوتلیال آسیب دیده و پلاکتها ترشح میشود.
+۳) پلاکتها از طریق فاکتور ون ویلبراند به بافتهای ساب اندوتلیال آسیب دیده متصل میشوند.
+۴) ترشح ترومبوکسان از پلاکتها منجر به چسبیدن پلاکتها به کلاژن ساب اندوتلیال میشود. ⭐
+🧠 **چرا غلط است؟** چسبیدن پلاکت به کلاژن ساب‌اندوتلیال (Adhesion) توسط فاکتور "ون ویلبراند" (vWF) انجام می‌شود. ترومبوکسان A2 برای چسبیدن پلاکت‌ها به یکدیگر (Aggregation) است!
+
+**۲۹. ضعف دیواره عروق بدلیل تولید کلاژن غیر طبیعی در کدام بیماری مشاهده می شود؟**
+۱) اهلر دانلوس ⭐
+۲) گلانزمن
+۳) برنارد سولیر
+۴) کوشینگ
+🔗 **دسته بندی ذهنی:**
+بیماری اهلر دانلوس (Ehlers-Danlos) = نقص ژنتیکی در سنتز کلاژن (پوست کشسان، مفاصل انعطاف‌پذیر، عروق شکننده).
+گلانزمن و برنارد سولیر = اختلالات پلاکتی هستند، نه عروقی.
+
+**۳۲. در بیماران با اختلالات انعقادی در کارهای دندانپزشکی که منجر به خونریزی میشود، INR باید:**
+۱) 4.5 یا کمتر
+۲) 3.5 یا بیشتر
+۳) 4.5 یا بیشتر
+۴) 3.5 یا کمتر ⭐
+⚠️ **قانون طلایی دندانپزشکی:** برای کشیدن دندان در بیماران مصرف‌کننده وارفارین، عدد INR باید **۳.۵ یا کمتر** باشد تا بدون نیاز به قطع دارو کار انجام شود.
+
+**۳۶. تمامی درمانهای دندانپزشکی زیر نیاز به پروفیلاکسی دارد بجز؟**
+۱) بیوپسی
+۲) جرم گیری
+۳) ترمیم کلاس ۳ مولر ⭐
+۴) کشیدن
+🧠 **قانون پروفیلاکسی:** هر کاری که باعث خونریزی لثه یا سوراخ شدن مخاط شود نیاز به پروفیلاکسی دارد. ترمیم کلاس ۳ (روی سطح دندان بدون درگیری لثه) خونریزی نمی‌دهد.
+
+**۳۹. كدام عبارت در مورد history of present illness (HPI) صحیح است؟**
+۱) شامل اطلاعاتی در مورد تاریخچه خانوادگی بیمار است
+۲) شرح و تاریخچه ای بر chief complaint بیمار است ⭐
+۳) باید حداکثر دو جمله باشد
+۴) با سوالات close ended شروع میشود
+📝 **ترتیب منطقی پرونده:** اول شکایت اصلی (Chief Complaint) را به زبان خود بیمار می‌نویسیم. سپس در HPI همان شکایت را بسط داده و زمان شروع، شدت و ویژگی‌های آن را شرح می‌دهیم.
+
+**۴۸. در نمای رادیوگرافی نمای ترابکول های نردبانی و محو شدن لامینا دورا به ترتیب در کدام بیماری ها دیده میشوند؟**
+۱) سیکل سل آنمی - تالاسمی ⭐
+۲) سیکل سل آنمی - سیکل سل آنمی
+۳) تالاسمی - سیکل سل آنمی
+۴) تالاسمی - تالاسمی
+👀 **جمع‌بندی حافظه تصویری:**
+نردبان (Stepladder) ⬅️ سیکل سل (سلول داسی شکل).
+محو شدن لامینا دورا / نمای مو برس مانند ⬅️ تالاسمی.
+نمای پانچ اوت (سوراخ سوراخ) ⬅️ مالتیپل میلوما.
+</script>
+
+<script>
+        // State Variables
+        let allQuestions = [];
+        let activeQuestions = [];
+        let currentIndex = 0;
+        let score = { correct: 0, totalGraded: 0 };
+        let selectedOption = null;
+        let gameState = 'intro'; // 'intro', 'quiz', 'result'
+
+        // Parse logic: Now captures study notes and explanations
+        function parseQuestions(rawText) {
+            const blocks = rawText.split(/\*\*(?=[\d۰-۹]+\.)/).filter(b => b.trim() !== '');
+            const questionList = [];
+
+            for (let i = 0; i < blocks.length; i++) {
+                const lines = blocks[i].split('\n').map(l => l.trim()).filter(l => l !== '');
+                if (lines.length < 2) continue;
+
+                const qText = lines[0].replace(/\*\*/g, "").replace(/^[\d۰-۹]+\.\s+/, "").trim();
+                const options = [];
+                const notes = []; // آرایه جدید برای ذخیره نکات آموزشی
+                let correctIndex = -1;
+
+                for (let j = 1; j < lines.length; j++) {
+                    if (/^[\d۰-۹]+\)/.test(lines[j])) {
+                        // درآوردن گزینه‌ها
+                        let optText = lines[j].replace(/^[\d۰-۹]+\)\s*/, '').trim();
+                        if (optText.includes('⭐') || optText.includes('☑') || optText.includes('✓') || /\bV\b/.test(optText)) {
+                            correctIndex = options.length;
+                            optText = optText.replace(/⭐.*/, '').replace(/☑.*/, '').replace(/✓.*/, '').replace(/\bV\b.*/, '').trim();
+                        }
+                        options.push(optText);
+                    } else {
+                        // هر خطی که گزینه نیست، به عنوان نکته آموزشی ذخیره می‌شود
+                        // تبدیل بولد مارک‌داون به تگ HTML
+                        let noteText = lines[j].replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold">$1</strong>');
+                        notes.push(noteText);
+                    }
+                }
+                if (options.length > 0) {
+                    questionList.push({ q: qText, options, answer: correctIndex, notes });
+                }
+            }
+            
+            // حذف سوالات تکراری
+            const uniqueQuestions = [];
+            const seen = new Set();
+            for (const item of questionList) {
+                if (!seen.has(item.q)) {
+                    seen.add(item.q);
+                    uniqueQuestions.push(item);
+                }
+            }
+            return uniqueQuestions;
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            const rawText = document.getElementById('raw-questions-data').textContent;
+            allQuestions = parseQuestions(rawText);
+            render();
+        });
+
+        // App Logic
+        function startQuiz(shuffle = false) {
+            let qs = [...allQuestions];
+            if (shuffle) qs.sort(() => Math.random() - 0.5);
+            activeQuestions = qs;
+            currentIndex = 0;
+            score = { correct: 0, totalGraded: 0 };
+            selectedOption = null;
+            gameState = 'quiz';
+            render();
+        }
+
+        function handleOptionClick(idx) {
+            if (selectedOption !== null) return; 
+            selectedOption = idx;
+            const q = activeQuestions[currentIndex];
+            if (q.answer !== -1) {
+                score.correct += (idx === q.answer ? 1 : 0);
+                score.totalGraded += 1;
+            }
+            render();
+        }
+
+        function nextQuestion() {
+            if (currentIndex + 1 < activeQuestions.length) {
+                currentIndex++;
+                selectedOption = null;
+                render();
+            } else {
+                gameState = 'result';
+                render();
+            }
+        }
+
+        // Rendering Engine
+        function render() {
+            const root = document.getElementById('root');
+            root.innerHTML = ''; 
+
+            if (gameState === 'intro') {
+                root.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center fade-in">
+                        <i data-lucide="graduation-cap" class="w-16 h-16 mx-auto text-blue-600 mb-4"></i>
+                        <h1 class="text-3xl font-bold text-slate-800 mb-2">آزمون سیستمیک ۱</h1>
+                        <p class="text-slate-500 mb-8">${allQuestions.length} سوال به همراه نکات در بانک موجود است</p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button onclick="startQuiz(false)" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="play" class="w-5 h-5"></i>
+                                شروع به ترتیب
+                            </button>
+                            <button onclick="startQuiz(true)" class="px-6 py-3 bg-white border-2 border-slate-200 hover:border-blue-600 hover:text-blue-600 text-slate-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="shuffle" class="w-5 h-5"></i>
+                                شروع تصادفی
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } 
+            else if (gameState === 'quiz') {
+                const q = activeQuestions[currentIndex];
+                const progress = ((currentIndex) / activeQuestions.length) * 100;
+                
+                let optionsHtml = '';
+                q.options.forEach((opt, idx) => {
+                    let btnClass = "w-full text-right p-4 rounded-xl border-2 transition-all mb-3 text-slate-700 font-medium ";
+                    let iconHtml = "";
+
+                    if (selectedOption === null) {
+                        btnClass += "border-slate-200 hover:border-blue-400 hover:bg-blue-50 cursor-pointer";
+                    } else {
+                        btnClass += "cursor-default ";
+                        if (idx === q.answer) {
+                            btnClass += "border-green-500 bg-green-50 text-green-700";
+                            iconHtml = `<i data-lucide="check-circle" class="w-5 h-5 text-green-600 mr-auto"></i>`;
+                        } else if (idx === selectedOption) {
+                            btnClass += "border-red-500 bg-red-50 text-red-700";
+                            iconHtml = `<i data-lucide="x-circle" class="w-5 h-5 text-red-600 mr-auto"></i>`;
+                        } else {
+                            btnClass += "border-slate-200 opacity-50";
+                        }
+                    }
+
+                    optionsHtml += `
+                        <button onclick="handleOptionClick(${idx})" class="${btnClass} flex items-center justify-between">
+                            <span><span class="inline-block w-6 text-slate-400 font-bold">${idx + 1})</span> ${opt}</span>
+                            ${iconHtml}
+                        </button>
+                    `;
+                });
+
+                // تولید کدهای HTML مربوط به نکات آموزشی (در صورت وجود)
+                let notesHtml = '';
+                if (q.notes && q.notes.length > 0) {
+                    const notesList = q.notes.map(note => `<p class="leading-relaxed">${note}</p>`).join('');
+                    notesHtml = `
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 text-amber-900 text-sm md:text-base space-y-2 shadow-sm">
+                            ${notesList}
+                        </div>
+                    `;
+                }
+
+                root.innerHTML = `
+                    <div class="mb-6 fade-in">
+                        <div class="flex justify-between text-sm text-slate-500 mb-2 font-medium">
+                            <span>سوال ${currentIndex + 1} از ${activeQuestions.length}</span>
+                            <span dir="ltr">${Math.round(progress)}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 fade-in">
+                        <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-6 leading-relaxed">
+                            ${q.q}
+                        </h2>
+                        
+                        ${notesHtml}
+                        
+                        <div class="space-y-3 mt-2">
+                            ${optionsHtml}
+                        </div>
+
+                        ${selectedOption !== null ? `
+                            <div class="mt-8 flex justify-end fade-in">
+                                <button onclick="nextQuestion()" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2 shadow-sm">
+                                    سوال بعدی
+                                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            else if (gameState === 'result') {
+                const percentage = Math.round((score.correct / score.totalGraded) * 100) || 0;
+                let colorClass = percentage >= 80 ? "text-green-600" : percentage >= 50 ? "text-yellow-500" : "text-red-500";
+                
+                root.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center fade-in">
+                        <i data-lucide="award" class="w-20 h-20 mx-auto mb-4 ${colorClass}"></i>
+                        <h2 class="text-3xl font-bold text-slate-800 mb-2">پایان آزمون</h2>
+                        <p class="text-slate-500 mb-8">نتیجه عملکرد شما در این آزمون</p>
+                        
+                        <div class="text-5xl font-extrabold ${colorClass} mb-8" dir="ltr">
+                            ${percentage}%
+                        </div>
+                        
+                        <div class="flex justify-center gap-8 mb-10 text-lg">
+                            <div class="text-center">
+                                <p class="text-slate-500 text-sm mb-1">پاسخ‌های صحیح</p>
+                                <p class="font-bold text-green-600">${score.correct}</p>
+                            </div>
+                            <div class="text-center border-r border-slate-200 pr-8">
+                                <p class="text-slate-500 text-sm mb-1">کل سوالات</p>
+                                <p class="font-bold text-slate-700">${activeQuestions.length}</p>
+                            </div>
+                        </div>
+
+                        <button onclick="gameState='intro'; render();" class="px-8 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors inline-flex items-center gap-2">
+                            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                            بازگشت به صفحه اصلی
+                        </button>
+                    </div>
+                `;
+            }
+
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت داینامیک</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: Vazirmatn, sans-serif;
+        }
+
+        @media (max-width: 640px) {
+            .h-32 {
+                height: 6rem;
+            }
+
+            /* Shrink long text boxes on small phones */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 p-4 min-h-screen">
+
+    <!-- پنجره مودال برای نمایش جزئیات پاسخ یک فرد -->
+    <div id="viewModal"
+        class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-5 border-b bg-gray-50 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-800">جزئیات پاسخ (فرم فارسی)</h2>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-red-500 transition-colors p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalContent" class="p-6 overflow-y-auto flex-1 bg-gray-50/50">
+                <!-- محتوای داینامیک اینجا قرار می‌گیرد -->
+            </div>
+        </div>
+    </div>
+
+    <!-- کانتینر اصلی جدول -->
+    <div class="max-w-[95%] mx-auto bg-white rounded-2xl shadow-lg p-6 relative z-10">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">نتایج پژوهش (داینامیک)</h1>
+            <div class="flex gap-2">
+                <button onclick="openConfigEditor()"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">ویرایش
+                    پرسشنامه</button>
+                <button onclick="exportToCSV()"
+                    class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors">
+                    خروجی CSV
+                </button>
+
+            </div>
+        </div>
+
+<div class="overflow-x-auto shadow-sm rounded-lg border border-gray-200">
+    <table class="w-full text-right border-collapse table-auto whitespace-nowrap">
+        <!-- whitespace-nowrap -->
+                <thead id="tableHead" class="bg-gray-50 border-b text-gray-500 font-bold uppercase tracking-wider">
+                </thead>
+                <tbody id="tableBody" class="text-sm text-gray-700">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let globalData = [];
+        let qMap = {};   // برای ذخیره متن فارسی سوالات
+        let valMap = {}; // برای ذخیره متن فارسی گزینه‌ها
+
+        async function loadData() {
+            // ۱. تلاش برای دریافت تنظیمات پرسشنامه جهت مپ کردن زبان فارسی
+            try {
+                // اگر فایل جیسون در روت سرور است از 'survey_config.json/' استفاده کنید.
+                // اگر در مسیر دیگری است، آدرس دقیق آن را اینجا قرار دهید.
+                const configRes = await fetch('https://engine.dentnet.space/api/appliance_survey/config');
+                if (configRes.ok) {
+                    const config = await configRes.json();
+                    config.steps.forEach(step => {
+                        step.questions.forEach(q => {
+                            qMap[q.id] = q.label;
+                            if (q.type === 'radio' && q.options) {
+                                valMap[q.id] = {};
+                                q.options.forEach(opt => {
+                                    valMap[q.id][opt.val] = opt.text;
+                                });
+                            }
+                        });
+                    });
+                }
+            } catch (e) {
+                console.log("فایل survey_config.json یافت نشد. مقادیر خام نمایش داده می‌شوند.");
+            }
+
+            // ۲. دریافت اطلاعات ثبت‌شده از دیتابیس
+            const res = await fetch('https://engine.dentnet.space/api/appliance_survey/data');
+            let rawData = await res.json();
+
+            // FLATTEN THE DATA: Convert {id, timestamp, responses: {...}} to {id, timestamp, ...responses}
+            globalData = rawData.map(item => {
+                return {
+                    id: item.id,
+                    timestamp: item.timestamp,
+                    ...item.responses // Spread the responses into the top level
+                };
+            });
+
+            if (globalData.length === 0) return;
+
+            // استخراج تمام کلیدهای داینامیک
+            let allKeys = new Set(["id", "timestamp"]);
+            globalData.forEach(row => {
+                Object.keys(row).forEach(k => allKeys.add(k));
+            });
+            // const keysArray = Array.from(allKeys);
+            const keysArray = ["id", "timestamp", ...Array.from(allKeys).filter(k => k !== 'id' && k !== 'timestamp')];
+
+            // ساخت هدر جدول (با اضافه شدن ستون عملیات)
+            document.getElementById('tableHead').innerHTML = `<tr>` +
+                `<th class="p-1 border-l text-center text-[10px]">عملیات</th>` +
+                keysArray.map(k => `<th dir="ltr" class="text-center p-1 border-l border-gray-200 truncate max-w-[100px] text-[7px]">${k}</th>`).join('') +
+                `</tr>`;
+
+            // ساخت ردیف‌های جدول
+            document.getElementById('tableBody').innerHTML = globalData.map((row, index) => `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 border-l text-center">
+                        <button onclick="showDetails(${index})" class="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm">مشاهده فرم</button>
+                    </td>
+                    ${keysArray.map(k => `<td class="text-center p-1 border-l border-gray-200 truncate max-w-[100px] text-[12px]">${row[k] !== undefined ? row[k] : '-'}</td>`).join('')}
+                </tr>
+            `).join('');
+        }
+
+        // تابع نمایش جزئیات در پاپ‌آپ
+        function showDetails(index) {
+            const row = globalData[index];
+            let html = `
+                <div class="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-gray-200">
+                    <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                        <span class="text-gray-400 text-xs block mb-1">شناسه (ID)</span>
+                        <strong dir="ltr" class="text-gray-800">${row.id}</strong>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                        <span class="text-gray-400 text-xs block mb-1">تاریخ و زمان</span>
+                        <strong dir="ltr" class="text-sm text-gray-800">${row.timestamp}</strong>
+                    </div>
+                </div>
+                <div class="space-y-4">
+            `;
+
+            for (const key in row) {
+                if (key === 'id' || key === 'timestamp') continue;
+
+                // پیدا کردن معادل فارسی سوال، اگر نبود همان کلید انگلیسی را نشان می‌دهد
+                const persianLabel = qMap[key] || key;
+                let answerVal = row[key];
+
+                // پیدا کردن معادل فارسی جواب (در صورتی که رادیو باتن بوده باشد)
+                if (valMap[key] && valMap[key][answerVal]) {
+                    answerVal = valMap[key][answerVal];
+                }
+
+                html += `
+                    <div class="bg-white p-4 rounded-xl border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+                        <span class="block text-gray-800 font-bold mb-2 text-sm leading-relaxed">${persianLabel}</span>
+                        <span class="block text-blue-600 font-black text-base">${answerVal !== undefined ? answerVal : '-'}</span>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+
+            document.getElementById('modalContent').innerHTML = html;
+            const modal = document.getElementById('viewModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // بستن پاپ‌آپ
+        function closeModal() {
+            const modal = document.getElementById('viewModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        loadData();
+
+
+        function exportToCSV() {
+            if (globalData.length === 0) return;
+
+            // 1. Get all unique headers from all rows
+            const headers = Array.from(new Set(globalData.flatMap(row => Object.keys(row))));
+
+            // 2. Create CSV content
+            const csvRows = [];
+            csvRows.push(headers.join(',')); // Add headers row
+
+            for (const row of globalData) {
+                const values = headers.map(header => {
+                    const val = row[header] === undefined ? '' : row[header];
+                    // Escape quotes and wrap in quotes to handle commas within values
+                    return `"${String(val).replace(/"/g, '""')}"`;
+                });
+                csvRows.push(values.join(','));
+            }
+
+            // 3. Trigger download
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "survey_results.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        // ==========================================
+        // Editor Logic (Mobile First, Tree View)
+        // ==========================================
+        let currentConfig = null;
+        let expandedPaths = new Set(['root']); // مسیرهای باز شده را ذخیره می‌کند
+        let targetPathForDelete = null;
+        let targetPathForAdd = null;
+        let targetIsArrayForAdd = false;
+
+        async function openConfigEditor() {
+            try {
+                const res = await fetch('https://engine.dentnet.space/api/appliance_survey/config');
+                currentConfig = await res.json();
+                renderTree();
+
+                const editor = document.getElementById('editorModal');
+                editor.classList.remove('hidden');
+                editor.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            } catch (e) {
+                alert("خطا در دریافت فایل کانفیگ");
+            }
+        }
+
+        function closeConfigEditor() {
+            const editor = document.getElementById('editorModal');
+            editor.classList.add('hidden');
+            editor.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        // رندر مجدد کل درخت (چون JSON کوچک است پرفورمنس مشکلی ندارد)
+        function renderTree() {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = createNodeHTML('root', currentConfig, [], true);
+        }
+
+        // تولید HTML بازگشتی برای هر گره
+        function createNodeHTML(key, value, path, isRoot = false) {
+            const pathStr = JSON.stringify(path);
+            const isObj = value !== null && typeof value === 'object';
+            const isArr = Array.isArray(value);
+            const type = isArr ? 'array' : isObj ? 'object' : typeof value;
+            const isExpanded = expandedPaths.has(pathStr);
+
+            // رنگ‌بندی بر اساس نوع
+            const badgeColor = isArr ? 'bg-purple-500/20 text-purple-400' : isObj ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400';
+            const borderIndent = isRoot ? '' : 'border-l-2 border-gray-700 ml-1.5 sm:ml-3 pl-2 sm:pl-3 mt-2';
+
+            let html = `<div class="flex flex-col ${borderIndent}">`;
+
+            // هدر گره
+            html += `
+                <div class="flex justify-between items-center bg-gray-800/80 p-0.5 rounded-lg border border-gray-700/50 hover:bg-gray-800 transition-colors">
+                    <div class="flex items-center gap-2 cursor-pointer flex-1" onclick='toggleNode(${pathStr})'>
+                        ${isObj ? `<svg class="w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>` : '<span class="w-4"></span>'}
+                        <span class="font-mono text-sm sm:text-base text-gray-200 truncate max-w-[120px] sm:max-w-[200px]">${key}</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded ${badgeColor} uppercase tracking-wider font-bold">${type}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                        ${isObj ? `<button onclick='promptAdd(${pathStr}, ${isArr})' class="w-8 h-8 flex items-center justify-center bg-blue-500/10 text-blue-400 rounded-md hover:bg-blue-500/20 active:scale-95"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></button>` : ''}
+                        ${!isRoot ? `<button onclick='promptDelete(${pathStr})' class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-400 rounded-md hover:bg-red-500/20 active:scale-95"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg></button>` : ''}
+                    </div>
+                </div>
+            `;
+
+            // بدنه گره (فرزندان یا اینپوت)
+            if (isObj) {
+                if (isExpanded) {
+                    html += `<div class="mt-1 space-y-1">`;
+                    if (Object.keys(value).length === 0) {
+                        html += `<span class="text-xs text-gray-500 ml-6 italic">Empty ${type}</span>`;
+                    } else {
+                        for (let childKey in value) {
+                            html += createNodeHTML(childKey, value[childKey], [...path, childKey]);
+                        }
+                    }
+                    html += `</div>`;
+                }
+            } else {
+                const isPersian = /[\u0600-\u06FF]/.test(String(value));
+                const dir = isPersian ? 'rtl' : 'ltr';
+                const fontClass = isPersian ? 'font-sans' : 'font-mono';
+
+                // Determine height based on content length
+                const isLongText = String(value).length > 100;
+                const heightClass = isLongText ? 'h-32' : 'h-12';
+
+                html += `
+        <div class="mt-1.5 mb-2 ml-6">
+            <textarea 
+                dir="${dir}"
+                onchange='updateData(${pathStr}, this.value, "${type}")' 
+                class="w-full ${heightClass} bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm text-green-300 outline-none focus:border-blue-500 ${fontClass} resize-none overflow-y-auto shadow-inner" 
+                spellcheck="false">${value}</textarea>
+        </div>
+    `;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        // هندل کردن باز و بسته شدن
+        function toggleNode(path) {
+            const pathStr = JSON.stringify(path);
+            if (expandedPaths.has(pathStr)) {
+                expandedPaths.delete(pathStr);
+            } else {
+                expandedPaths.add(pathStr);
+            }
+            renderTree();
+        }
+
+        // توابع کمکی برای کار با مسیرهای تو در تو
+        function getRefByPath(obj, path) {
+            let current = obj;
+            for (let i = 0; i < path.length - 1; i++) {
+                current = current[path[i]];
+            }
+            return current;
+        }
+
+        function updateData(path, val, originalType) {
+            if (path.length === 0) return;
+            let ref = getRefByPath(currentConfig, path);
+            let lastKey = path[path.length - 1];
+
+            // بازگرداندن نوع داده به عدد در صورت امکان
+            let finalVal = val;
+            if (originalType === 'number' && val.trim() !== '' && !isNaN(val)) {
+                finalVal = Number(val);
+            }
+            ref[lastKey] = finalVal;
+        }
+
+        // ======= منطق حذف =======
+        function promptDelete(path) {
+            targetPathForDelete = path;
+            const modal = document.getElementById('deleteModal');
+            const content = modal.firstElementChild;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            const content = modal.firstElementChild;
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        }
+
+        function executeDelete() {
+            if (!targetPathForDelete || targetPathForDelete.length === 0) return;
+            let ref = getRefByPath(currentConfig, targetPathForDelete);
+            let lastKey = targetPathForDelete[targetPathForDelete.length - 1];
+
+            if (Array.isArray(ref)) {
+                ref.splice(lastKey, 1);
+            } else {
+                delete ref[lastKey];
+            }
+
+            closeDeleteModal();
+            renderTree();
+        }
+
+        // ======= منطق اضافه کردن =======
+        function promptAdd(path, isArray) {
+            targetPathForAdd = path;
+            targetIsArrayForAdd = isArray;
+
+            document.getElementById('addKeyInput').value = '';
+            document.getElementById('addTypeInput').value = 'string';
+
+            const keyContainer = document.getElementById('addKeyContainer');
+            if (isArray) {
+                keyContainer.style.display = 'none'; // در آرایه کلید نداریم
+            } else {
+                keyContainer.style.display = 'block';
+            }
+
+            const modal = document.getElementById('addModal');
+            const content = modal.firstElementChild;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeAddModal() {
+            const modal = document.getElementById('addModal');
+            const content = modal.firstElementChild;
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        }
+
+        function executeAdd() {
+            let key = document.getElementById('addKeyInput').value.trim();
+            let type = document.getElementById('addTypeInput').value;
+
+            if (!targetIsArrayForAdd && !key) {
+                alert('لطفا نام کلید را وارد کنید!');
+                return;
+            }
+
+            let ref = currentConfig;
+            for (let i = 0; i < targetPathForAdd.length; i++) {
+                ref = ref[targetPathForAdd[i]];
+            }
+
+            let newVal = type === 'object' ? {} : type === 'array' ? [] : type === 'number' ? 0 : "";
+
+            if (targetIsArrayForAdd) {
+                ref.push(newVal);
+            } else {
+                ref[key] = newVal;
+            }
+
+            // باز کردن گره والد تا آیتم جدید دیده شود
+            expandedPaths.add(JSON.stringify(targetPathForAdd));
+
+            closeAddModal();
+            renderTree();
+        }
+
+        // ذخیره نهایی
+        async function saveFormConfig() {
+            try {
+                const res = await fetch("https://engine.dentnet.space/api/appliance_survey/config", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(currentConfig)
+                });
+                if (res.ok) {
+                    alert("کانفیگ با موفقیت در سرور ذخیره شد!");
+                    location.reload();
+                } else {
+                    alert("خطا در ذخیره فایل در سرور.");
+                }
+            } catch (e) {
+                alert("خطای ارتباط با سرور.");
+            }
+        }
+    </script>
+
+    <div id="editorModal" class="fixed inset-0 bg-gray-900 hidden flex-col z-10 overflow-hidden">
+        <div class="flex justify-between items-center bg-gray-800 p-4 shadow-md shrink-0">
+            <h2 class="text-white font-bold text-lg">ویرایش پیشرفته پرسشنامه</h2>
+            <div class="flex gap-2">
+                <button onclick="closeConfigEditor()"
+                    class="bg-gray-700 text-white px-4 py-2 rounded-lg text-sm active:scale-95 transition-transform">لغو</button>
+                <button onclick="saveFormConfig()"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold active:scale-95 transition-transform shadow-lg shadow-blue-600/30">ذخیره
+                    و اعمال</button>
+            </div>
+        </div>
+
+        <div id="treeContainer" class="flex-1 overflow-y-auto p-3 sm:p-5 pb-32 space-y-3 bg-[#0F172A]" dir="ltr">
+        </div>
+
+        <div id="deleteModal"
+            class="fixed inset-0 bg-black/80 hidden items-center justify-center z- p-4 backdrop-blur-sm opacity-0 transition-opacity">
+            <div class="bg-gray-800 rounded-2xl w-full max-w-sm p-6 transform scale-95 transition-transform shadow-2xl border border-gray-700"
+                dir="rtl">
+                <h3 class="text-xl font-bold text-red-500 mb-2">حذف آیتم</h3>
+                <p class="text-gray-300 text-sm mb-6">آیا از حذف این مورد اطمینان دارید؟ این عمل قابل بازگشت نیست.</p>
+                <div class="flex gap-3 justify-end">
+                    <button onclick="closeDeleteModal()"
+                        class="px-4 py-2 rounded-lg text-gray-300 bg-gray-700 hover:bg-gray-600 text-sm">انصراف</button>
+                    <button onclick="executeDelete()"
+                        class="px-4 py-2 rounded-lg text-white bg-red-600 hover:bg-red-700 text-sm font-bold">بله، حذف
+                        کن</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="addModal"
+            class="fixed inset-0 bg-black/80 hidden items-center justify-center z- p-4 backdrop-blur-sm opacity-0 transition-opacity">
+            <div class="bg-gray-800 rounded-2xl w-full max-w-sm p-6 transform scale-95 transition-transform shadow-2xl border border-gray-700"
+                dir="rtl">
+                <h3 class="text-xl font-bold text-blue-400 mb-4">افزودن آیتم جدید</h3>
+
+                <div id="addKeyContainer" class="mb-4">
+                    <label class="block text-sm text-gray-400 mb-1">نام کلید (Key انگلیسی):</label>
+                    <input type="text" id="addKeyInput"
+                        class="w-full bg-gray-900 border border-gray-600 rounded-lg p-2.5 text-white outline-none focus:border-blue-500"
+                        dir="ltr" placeholder="e.g., new_question">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm text-gray-400 mb-1">نوع داده (Type):</label>
+                    <select id="addTypeInput"
+                        class="w-full bg-gray-900 border border-gray-600 rounded-lg p-2.5 text-white outline-none focus:border-blue-500"
+                        dir="ltr">
+                        <option value="string">String (متن)</option>
+                        <option value="number">Number (عدد)</option>
+                        <option value="array">Array (لیست)</option>
+                        <option value="object">Object (مجموعه)</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3 justify-end">
+                    <button onclick="closeAddModal()"
+                        class="px-4 py-2 rounded-lg text-gray-300 bg-gray-700 hover:bg-gray-600 text-sm">انصراف</button>
+                    <button onclick="executeAdd()"
+                        class="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 text-sm font-bold">افزودن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

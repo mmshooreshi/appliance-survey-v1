@@ -3,862 +3,561 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>پژوهش زیبایی‌شناسی ارتودنسی</title>
 
-    <!-- Valid Google Fonts CDN for Vazirmatn -->
-    <!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
-    <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
-    <!-- <link href="https://cdn.jsdelivr.net/npm/vazir-font@30.1.0/dist/font-face.min.css" rel="stylesheet"> -->
-    <link rel="stylesheet" href="https://c.vazirweb.ir/cdn/vazirmatn/vazirmatn.css">
-
-
-    <!-- Tailwind CSS -->
-    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
-    <script src="https://c.vazirweb.ir/cdn/tailwind/3.4.10/tailwind.play.min.js"></script>
-    <script src="panzoom.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pinch-zoom-element-js@1.1.2/dist/pinch-zoom.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/pinch-zoom-element-js@1.1.2/lib/styles.min.css" rel="stylesheet">
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Vazir', 'Vazirmatn', 'sans-serif'],
-                    },
+                    fontFamily: { sans: ['Vazirmatn', 'sans-serif'] },
                     colors: {
-                        bgDark: '#0B0F19',
-                        bgCard: 'rgba(20, 27, 45, 0.6)',
-                        primary: '#00E1D9',
-                        primaryGlow: 'rgba(0, 225, 217, 0.4)',
-                        secondary: '#8A2BE2',
-                        textMain: '#E2E8F0',
-                        textMuted: '#94A3B8'
-                    },
-                    boxShadow: {
-                        '2.5d': '0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1)',
-                        '2.5d-hover': '0 20px 40px -10px rgba(0, 225, 217, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.2)',
-                        '2.5d-active': '0 5px 15px -5px rgba(0, 225, 217, 0.3), inset 0 -1px 2px rgba(255, 255, 255, 0.1), inset 0 2px 10px rgba(0,0,0,0.5)',
-                        'glow': '0 0 20px rgba(0, 225, 217, 0.5)',
+                        bgDark: '#F8FAFC',
+                        bgCard: '#1E293B',
+                        primary: '#3B82F6',
+                        primaryHover: '#60A5FA',
+                        secondary: '#22D3EE',
+                        textMain: '#0F172A',
+                        textMuted: '#64748B'
                     }
                 }
             }
         }
-
-
     </script>
 
     <style>
+        :root {
+            --color-primary: #3B82F6;
+            --color-primary-hover: #60A5FA;
+        }
+
         body {
-            background-color: #0B0F19;
-            color: #E2E8F0;
+            background-color: #0F172A;
+            color: #F8FAFC;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
+            touch-action: pan-y;
         }
 
-        /* Soothing Animated Background Blobs */
-        .blob-bg {
-            position: fixed;
+        /* Remove flex/alignment issues */
+        pinch-zoom {
+            display: block;
+            position: relative;
+            width: 100%;
+            height: 260px;
+            overflow: hidden;
+            border-radius: 0.75rem;
+            /* Allow the browser to handle normal mouse scrolling outside the image */
+            /* touch-action: pan-y;  */
+            touch-action: none;
+            /* <-- Change this to 'none' */
+            /* This ensures the library doesn't capture the mouse unless it's a specific gesture */
+            user-select: none;
+        }
+
+        #auto-zoom-image {
+            /* Use a stable origin so the browser doesn't have to re-anchor the element */
+            transform-origin: top center;
+            /* Single transition for both scale and translation */
+            transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        /* Ensure the image container sits flush at the top */
+        .image-container-wrapper {
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            overflow: hidden;
-            background: radial-gradient(circle at 50% 50%, #0B0F19 0%, #05070A 100%);
+            width: 100%;
+            height: 100%;
         }
 
-        .blob {
-            position: absolute;
-            filter: blur(80px);
-            opacity: 0.4;
-            animation: float 20s infinite ease-in-out alternate;
+
+        pinch-zoom img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
         }
 
-        .blob-1 {
-            width: 400px;
-            height: 400px;
-            background: #00E1D9;
-            top: -100px;
-            right: -100px;
-            animation-delay: 0s;
-        }
-
-        .blob-2 {
-            width: 500px;
-            height: 500px;
-            background: #8A2BE2;
-            bottom: -150px;
-            left: -100px;
-            animation-delay: -5s;
-        }
-
-        .blob-3 {
-            width: 300px;
-            height: 300px;
-            background: #0055FF;
-            top: 40%;
-            left: 40%;
-            animation-delay: -10s;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-
-            50% {
-                transform: translate(30px, 50px) scale(1.1);
-            }
-
-            100% {
-                transform: translate(-20px, -30px) scale(0.9);
-            }
-        }
-
-        /* Glassmorphism Container */
-        .glass-panel {
-            background: var(--bgCard);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Subtle Step Transitions */
         .step {
             display: none;
             opacity: 0;
-            transform: translateY(20px) scale(0.98);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(10px);
+            transition: all 0.3s ease-out;
         }
 
         .step.active {
             display: block;
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(0);
         }
 
-        /* Custom 2.5D Radio Cards */
-        .radio-card input:checked+div {
-            background: linear-gradient(135deg, rgba(0, 225, 217, 0.1) 0%, rgba(0, 225, 217, 0.05) 100%);
-            border-color: #00E1D9;
-            box-shadow: inset 0 0 15px rgba(0, 225, 217, 0.1), 0 0 10px rgba(0, 225, 217, 0.2);
-            color: #00E1D9;
-            transform: translateY(-2px);
-        }
-
-        .radio-card div {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .radio-card:hover div {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Custom 2.5D Range Slider for VAS */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
+            /* 1. Create a massive invisible touch zone (double the original size) */
+            height: 80px;
             background: transparent;
-            height: 40px;
-            /* larger touch target */
+            outline: none;
+            /* 2. Pull the margins negative so this huge hit area doesn't break your visual layout */
+            margin-top: -20px;
+            margin-bottom: -20px;
+            cursor: pointer;
+            /* 3. Prevent the ugly grey/blue tap highlight box on Android */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Leave your track and thumb CSS exactly as they are! */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: #334155;
+            border-radius: 99px;
         }
 
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 28px;
-            width: 28px;
+            height: 24px;
+            width: 24px;
             border-radius: 50%;
-            background: radial-gradient(circle, #fff 20%, #00E1D9 80%);
+            background: var(--color-primary);
             cursor: pointer;
-            margin-top: -10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 225, 217, 0.6);
-            transition: transform 0.1s;
+            margin-top: -8px;
+            transition: transform 0.1s ease;
+            border: 2px solid #F8FAFC;
         }
 
         input[type=range]::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+            background: var(--color-primary);
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            background: var(--color-primary-hover);
             transform: scale(1.1);
         }
 
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 8px;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
         }
 
-        input[type=range]:focus {
-            outline: none;
-        }
-
-        /* Custom Input Text/Number */
-        .glass-input {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #E2E8F0;
-            transition: all 0.3s ease;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .glass-input:focus {
-            outline: none;
-            border-color: #00E1D9;
-            background: rgba(0, 225, 217, 0.05);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 225, 217, 0.2);
-        }
-
-        /* Image 2.5D Frame */
-        .img-frame {
-            border-radius: 20px;
-            padding: 8px;
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2));
-            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .img-frame img {
-            border-radius: 14px;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Floating 3D Icon */
-        .icon-3d {
-            animation: hover-3d 4s ease-in-out infinite;
-            filter: drop-shadow(0 10px 15px rgba(0, 225, 217, 0.4));
-        }
-
-        @keyframes hover-3d {
-
-            0%,
-            100% {
-                transform: translateY(0) rotateX(0deg);
-            }
-
-            50% {
-                transform: translateY(-10px) rotateX(10deg);
-            }
-        }
-
-
-
-        input[type=range] {
-            direction: ltr;
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
+<body class="min-h-screen flex flex-col items-center justify-start sm:justify-center p-4 sm:p-6 pb-32">
 
-    <!-- Soothing Background elements -->
-    <div class="blob-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-    </div>
+    <button id="fab-photos" onclick="togglePhotosModal()"
+        class="fixed bottom-6 left-6 z-40 bg-primary text-white px-5 py-4 rounded-2xl active:scale-95 transition-all duration-200 hidden flex-row items-center justify-center gap-3 shadow-lg shadow-black/20">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+            </path>
+        </svg>
+        <span class="font-bold text-sm">مشاهده تصاویر</span>
+    </button>
 
-    <!-- Main Application Container -->
-    <div class="w-full max-w-lg glass-panel rounded-[2rem] overflow-hidden relative z-10">
+    <div id="photos-modal"
+        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex-col justify-end transition-opacity duration-300 opacity-0"
+        onclick="handleOutsideClick(event)">
+        <div id="photos-modal-content"
+            class="absolute bg-bgCard w-full max-w-lg mx-auto rounded-t-3xl sm:rounded-3xl p-6 pb-0 h-[85vh] sm:h-[auto] sm:max-h-[90vh] flex flex-col transform translate-y-full bottom-0 transition-transform duration-300">
 
-        <!-- Animated Progress Bar -->
-        <div class="h-1.5 w-full bg-black/40 relative">
-            <div class="absolute top-0 left-0 w-full h-full overflow-hidden">
-                <div id="progress-bar"
-                    class="h-full bg-gradient-to-r from-secondary to-primary transition-all duration-700 ease-out shadow-glow"
-                    style="width: 5%; border-radius: 0 4px 4px 0;"></div>
-            </div>
-        </div>
-
-        <div class="p-6 sm:p-10">
-
-            <!-- ================= STEP 0: INTRO ================= -->
-            <div id="step-0" class="step active text-center">
-                <div
-                    class="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center border border-white/10 shadow-2.5d icon-3d">
-                    <!-- Modern Tooth/Medical SVG -->
-                    <svg class="w-12 h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <h1
-                    class="text-3xl font-black text-white mb-3 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-textMuted">
-                    پژوهش زیبایی‌شناسی ارتودنسی
-                </h1>
-                <p class="text-textMuted text-sm mb-8 leading-relaxed font-light">
-                    با سلام و احترام. این یک پرسشنامه استاندارد علمی است که هدف آن بررسی میزان جذابیت ظاهری و پذیرش
-                    اجتماعی انواع دستگاه‌های ارتودنسی از دیدگاه شماست.
-                    <br><br>
-                    تکمیل این فرم کوتاه حدود <strong>۱ دقیقه</strong> زمان می‌برد.
-                </p>
-
-                <button onclick="nextStep(1)"
-                    class="w-full bg-gradient-to-r from-primary to-primary/80 text-bgDark font-bold py-4 px-6 rounded-2xl shadow-2.5d hover:shadow-2.5d-hover active:shadow-2.5d-active transition-all duration-300 text-lg flex justify-center items-center gap-2 group">
-                    شروع ارزیابی
-                    <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            <div class="flex justify-between items-center mb-6 shrink-0">
+                <h3 class="text-xl font-bold text-white">تصاویر مرجع</h3>
+                <button onclick="togglePhotosModal()"
+                    class="bg-slate-700 text-white p-2 rounded-full active:bg-slate-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
                     </svg>
                 </button>
             </div>
-
-            <!-- ================= STEP 1: DEMOGRAPHICS ================= -->
-            <div id="step-1" class="step">
-                <h3 class="text-2xl font-bold text-white mb-2">اطلاعات جمعیت‌شناختی</h3>
-                <p class="text-xs text-primary/80 mb-8 font-light tracking-wide">جهت تحلیل دقیق‌تر آماری (محرمانه)</p>
-
-                <div class="space-y-6">
-                    <!-- Gender using Cards -->
-                    <div>
-                        <label class="block text-sm font-medium text-textMain mb-3">جنسیت</label>
-                        <div class="grid grid-cols-3 gap-2 sm:gap-3">
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_gender" value="male" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">مرد</div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_gender" value="female" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">زن</div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_gender" value="prefer_not" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-xs sm:text-sm font-medium text-textMuted">
-                                    سایر / نگفتن</div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Age -->
-                    <div>
-                        <label class="block text-sm font-medium text-textMain mb-3">سن (سال)</label>
-                        <input type="number" id="q_age" placeholder="مثلاً ۲۸"
-                            class="glass-input w-full rounded-xl p-3 text-center text-lg font-bold placeholder-textMuted/40">
-                    </div>
-
-                    <!-- Education -->
-                    <div>
-                        <label class="block text-sm font-medium text-textMain mb-3">تحصیلات</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_edu" value="highschool" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">دیپلم و کمتر
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_edu" value="bachelor" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">کارشناسی
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_edu" value="master" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">کارشناسی ارشد
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_edu" value="phd" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">دکتری و
-                                    بالاتر</div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- History -->
-                    <div>
-                        <label class="block text-sm font-medium text-textMain mb-3">آیا در گذشته یا حال درمان ارتودنسی
-                            داشته‌اید؟</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_history" value="yes" class="hidden">
-                                <div class="rounded-xl p-3 text-center font-bold text-textMuted">بله</div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_history" value="no" class="hidden">
-                                <div class="rounded-xl p-3 text-center font-bold text-textMuted">خیر</div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Dentist Check -->
-                    <div>
-                        <label class="block text-sm font-medium text-textMain mb-3">آیا دندانپزشک یا دانشجوی دندانپزشکی
-                            هستید؟</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_dentist" value="yes" class="hidden">
-                                <div class="rounded-xl p-3 text-center font-bold text-textMuted">بله</div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_dentist" value="no" class="hidden">
-                                <div class="rounded-xl p-3 text-center font-bold text-textMuted">خیر</div>
-                            </label>
-                        </div>
+            <div class="overflow-y-auto no-scrollbar space-y-8 pb-10">
+                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700">
+                    <span class="text-primary font-bold text-sm mb-3 block">تصویر الف: الاینر شفاف</span>
+                    <div class="h-[260px] bg-black/30 rounded-xl overflow-hidden border border-slate-700/50">
+                        <pinch-zoom disable-pan="true" animating="true">
+                            <img src="p-clear-aligner-1.png" alt="الاینر شفاف">
+                        </pinch-zoom>
                     </div>
                 </div>
-
-                <div class="mt-10 flex gap-4">
-                    <button onclick="prevStep(0)"
-                        class="w-1/3 bg-white/5 hover:bg-white/10 text-white font-medium py-3 rounded-xl transition-colors border border-white/10">بازگشت</button>
-                    <button onclick="nextStep(2)"
-                        class="w-2/3 bg-primary text-bgDark font-bold py-3 rounded-xl shadow-glow transition-all hover:scale-[1.02]">ادامه</button>
+                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700">
+                    <span class="text-secondary font-bold text-sm mb-3 block">تصویر ب: براکت سرامیکی</span>
+                    <div class="h-[260px]  bg-black/30 rounded-xl overflow-hidden border border-slate-700/50">
+                        <pinch-zoom disable-pan="true" animating="true">
+                            <img src="p-ceramic-brackets-1.png" alt="براکت سرامیکی">
+                        </pinch-zoom>
+                    </div>
+                </div>
+                <div class="bg-slate-800 rounded-2xl p-4 border border-slate-700">
+                    <span class="text-purple-400 font-bold text-sm mb-3 block">تصویر ج: براکت فلزی</span>
+                    <div class="h-[260px] bg-black/30 rounded-xl overflow-hidden border border-slate-700/50">
+                        <pinch-zoom disable-pan="true" animating="true">
+                            <img src="p-metallic-brackets-1.png" alt="براکت فلزی">
+                        </pinch-zoom>
+                    </div>
                 </div>
             </div>
-
-            <!-- ================= STEP 2: VAS Image A ================= -->
-            <div id="step-2" class="step">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold text-white">بخش اول: ارزیابی زیبایی</h3>
-                    <span
-                        class="bg-primary/20 text-primary px-3 py-1 rounded-full text-xs font-bold border border-primary/30">تصویر
-                        ۱ از ۲</span>
-                </div>
-
-                <p class="text-sm text-textMuted mb-4 font-light">لطفاً به تصویر <strong>دستگاه الف</strong> با دقت نگاه
-                    کنید.</p>
-
-                <!-- 2.5D Image Frame A -->
-                <div class="img-frame mb-8">
-                    <!-- Replace src with your Clear Aligner image -->
-
-                    <div class="aspect-[4/3] bg-bgDark rounded-[14px] relative z-50">
-                        <img src="p-ceramic-brackets-1.png" alt="Image A"
-                            class="w-full h-full object-cover zoomable-img">
-                    </div>
-                </div>
-                <div class="mb-8 p-6 rounded-2xl bg-white/5 border border-white/10 shadow-inner">
-                    <label class="block text-sm font-medium text-white mb-6 text-center">میزان جذابیت این لبخند چقدر
-                        است؟</label>
-
-                    <div class="flex justify-between flex-row-reverse text-xs text-textMuted font-medium mb-4 px-2">
-
-                        <span>بسیار نامطلوب</span>
-                        <span id="vas_a_val"
-                            class="text-primary text-2xl font-black filter drop-shadow-[0_0_8px_rgba(0,225,217,0.8)]">50</span>
-                        <span>بسیار جذاب</span>
-                    </div>
-                    <input type="range" id="q_vas_a" min="0" max="100" value="50"
-                        oninput="document.getElementById('vas_a_val').innerText = this.value">
-                </div>
-
-                <div class="flex gap-4">
-                    <button onclick="prevStep(1)"
-                        class="w-1/3 bg-white/5 hover:bg-white/10 text-white font-medium py-3 rounded-xl border border-white/10">بازگشت</button>
-                    <button onclick="nextStep(3)"
-                        class="w-2/3 bg-primary text-bgDark font-bold py-3 rounded-xl shadow-glow hover:scale-[1.02] transition-all">ثبت
-                        امتیاز</button>
-                </div>
-            </div>
-
-            <!-- ================= STEP 3: VAS Image B ================= -->
-            <div id="step-3" class="step">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-bold text-white">بخش اول: ارزیابی زیبایی</h3>
-                    <span
-                        class="bg-secondary/20 text-secondary px-3 py-1 rounded-full text-xs font-bold border border-secondary/30">تصویر
-                        ۲ از ۲</span>
-                </div>
-
-                <p class="text-sm text-textMuted mb-4 font-light">لطفاً به تصویر <strong>دستگاه ب</strong> با دقت نگاه
-                    کنید.</p>
-
-                <!-- 2.5D Image Frame B -->
-                <div class="img-frame mb-8">
-                    <!-- Replace src with your Ceramic Braces image -->
-                <div class="aspect-[4/3] bg-bgDark rounded-[14px] relative z-50">
-                        <img src="p-clear-aligner-1.png" alt="Image B" class="w-full h-full object-cover zoomable-img">
-                    </div>
-                </div>
-
-                <div class="mb-8 p-6 rounded-2xl bg-white/5 border border-white/10 shadow-inner">
-                    <label class="block text-sm font-medium text-white mb-6 text-center">میزان جذابیت این لبخند چقدر
-                        است؟</label>
-
-                    <div class="flex justify-between flex-row-reverse text-xs text-textMuted font-medium mb-4 px-2">
-
-
-                        <span>بسیار نامطلوب</span>
-                        <span id="vas_b_val"
-                            class="text-secondary text-2xl font-black filter drop-shadow-[0_0_8px_rgba(138,43,226,0.8)]">50</span>
-                        <span>بسیار جذاب</span>
-                    </div>
-                    <!-- The slider thumb uses primary color, we can keep it primary for consistency -->
-                    <input type="range" id="q_vas_b" min="0" max="100" value="50"
-                        oninput="document.getElementById('vas_b_val').innerText = this.value">
-                </div>
-
-                <div class="flex gap-4">
-                    <button onclick="prevStep(2)"
-                        class="w-1/3 bg-white/5 hover:bg-white/10 text-white font-medium py-3 rounded-xl border border-white/10">بازگشت</button>
-                    <button onclick="nextStep(4)"
-                        class="w-2/3 bg-primary text-bgDark font-bold py-3 rounded-xl shadow-glow hover:scale-[1.02] transition-all">ثبت
-                        امتیاز</button>
-                </div>
-            </div>
-
-            <!-- ================= STEP 4: ACCEPTABILITY ================= -->
-            <div id="step-4" class="step">
-                <h3 class="text-2xl font-bold text-white mb-4">بخش دوم: پذیرش شخصی</h3>
-                <div class="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-8 shadow-inner">
-                    <p class="text-sm font-medium text-primary leading-relaxed">
-                        فرض کنید <strong class="text-white">همین امروز</strong> به شما گفته می‌شود که نیاز به درمان
-                        ارتودنسی دارید. با توجه به این موضوع پاسخ دهید:
-                    </p>
-                </div>
-
-                <div class="space-y-8">
-                    <!-- Acceptability A -->
-                    <div>
-                        <label class="block text-base font-medium text-white mb-4">آیا حاضر هستید از <span
-                                class="text-primary font-bold">دستگاه الف</span> استفاده کنید؟</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_acc_a" value="definitely_yes" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">قطعاً بله
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_acc_a" value="probably_yes" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">احتمالاً بله
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_acc_a" value="probably_no" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">احتمالاً خیر
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_acc_a" value="definitely_no" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">قطعاً خیر
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="h-px w-full bg-white/10"></div>
-
-                    <!-- Acceptability B -->
-                    <div>
-                        <label class="block text-base font-medium text-white mb-4">آیا حاضر هستید از <span
-                                class="text-secondary font-bold">دستگاه ب</span> استفاده کنید؟</label>
-                        <div class="grid grid-cols-2 gap-3">
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_acc_b" value="definitely_yes" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">قطعاً بله
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_acc_b" value="probably_yes" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">احتمالاً بله
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_acc_b" value="probably_no" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">احتمالاً خیر
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_acc_b" value="definitely_no" class="hidden">
-                                <div class="rounded-xl p-3 text-center text-sm font-medium text-textMuted">قطعاً خیر
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-10 flex gap-4">
-                    <button onclick="prevStep(3)"
-                        class="w-1/3 bg-white/5 hover:bg-white/10 text-white font-medium py-3 rounded-xl border border-white/10">بازگشت</button>
-                    <button onclick="nextStep(5)"
-                        class="w-2/3 bg-primary text-bgDark font-bold py-3 rounded-xl shadow-glow hover:scale-[1.02] transition-all">ادامه</button>
-                </div>
-            </div>
-
-            <!-- ================= STEP 5: SOCIAL PERCEPTION ================= -->
-            <div id="step-5" class="step">
-                <h3 class="text-2xl font-bold text-white mb-2">بخش سوم: درک اجتماعی</h3>
-                <p class="text-sm text-textMuted mb-8 font-light">با مقایسه همزمان این دو دستگاه، نظرات خود را بیان
-                    کنید.</p>
-
-                <div class="space-y-8">
-                    <!-- Professionalism -->
-                    <div>
-                        <label class="block text-sm font-medium text-white mb-4 leading-relaxed">۱. در یک محیط حرفه‌ای
-                            (مانند مصاحبه استخدامی)، کدام دستگاه از نظر شما از لحاظ اجتماعی مقبول‌تر است؟</label>
-                        <div class="grid grid-cols-1 gap-3">
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_soc_prof" value="A" class="hidden">
-                                <div
-                                    class="rounded-xl p-4 text-center font-medium text-textMuted flex justify-between items-center">
-                                    <span>دستگاه الف</span>
-                                    <span class="w-4 h-4 rounded-full border border-current"></span>
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_soc_prof" value="B" class="hidden">
-                                <div
-                                    class="rounded-xl p-4 text-center font-medium text-textMuted flex justify-between items-center">
-                                    <span>دستگاه ب</span>
-                                    <span class="w-4 h-4 rounded-full border border-current"></span>
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_soc_prof" value="Equal" class="hidden">
-                                <div
-                                    class="rounded-xl p-4 text-center font-medium text-textMuted flex justify-between items-center">
-                                    <span>برایم تفاوتی ندارند</span>
-                                    <span class="w-4 h-4 rounded-full border border-current"></span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Attention -->
-                    <div>
-                        <label class="block text-sm font-medium text-white mb-4 leading-relaxed">۲. به نظر شما کدام
-                            دستگاه کمتر توجه ناخواسته دیگران را به سمت دهان جلب می‌کند؟</label>
-                        <div class="grid grid-cols-1 gap-3">
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_soc_attn" value="A" class="hidden">
-                                <div
-                                    class="rounded-xl p-4 text-center font-medium text-textMuted flex justify-between items-center">
-                                    <span>دستگاه الف</span>
-                                    <span class="w-4 h-4 rounded-full border border-current"></span>
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_soc_attn" value="B" class="hidden">
-                                <div
-                                    class="rounded-xl p-4 text-center font-medium text-textMuted flex justify-between items-center">
-                                    <span>دستگاه ب</span>
-                                    <span class="w-4 h-4 rounded-full border border-current"></span>
-                                </div>
-                            </label>
-                            <label class="radio-card cursor-pointer">
-                                <input type="radio" name="q_soc_attn" value="Equal" class="hidden">
-                                <div
-                                    class="rounded-xl p-4 text-center font-medium text-textMuted flex justify-between items-center">
-                                    <span>به یک اندازه جلب توجه می‌کنند</span>
-                                    <span class="w-4 h-4 rounded-full border border-current"></span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-10 flex gap-4">
-                    <button onclick="prevStep(4)"
-                        class="w-1/3 bg-white/5 hover:bg-white/10 text-white font-medium py-3 rounded-xl border border-white/10">بازگشت</button>
-                    <!-- Final Submit Button -->
-                    <button onclick="submitForm()"
-                        class="w-2/3 bg-gradient-to-r from-[#00f2fe] to-[#4facfe] text-bgDark font-black py-3 rounded-xl shadow-[0_0_20px_rgba(79,172,254,0.6)] hover:scale-[1.02] transition-all flex justify-center items-center gap-2">
-                        پایان و ثبت
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- ================= STEP 6: OUTRO / SUCCESS ================= -->
-            <div id="step-6" class="step text-center py-6">
-                <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#00f2fe]/20 to-[#4facfe]/20 flex items-center justify-center border border-[#00f2fe]/30 icon-3d"
-                    style="box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);">
-                    <svg class="w-12 h-12 text-[#00f2fe]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                <h2 class="text-3xl font-black text-white mb-4">با موفقیت ثبت شد!</h2>
-                <p class="text-textMuted text-sm mb-10 leading-relaxed font-light">
-                    از زمان و دقتی که برای پیشبرد این پژوهش علمی صرف کردید بی‌نهایت سپاسگزاریم. پاسخ‌های شما ارزشمند
-                    است.
-                </p>
-
-                <div
-                    class="hidden text-xs text-textMuted/60 bg-black/30 p-4 rounded-xl text-right leading-relaxed border border-white/5 inset-shadow relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-1 h-full bg-secondary"></div>
-                    <strong class="text-white/80 block mb-2">منابع متدولوژی تحقیق:</strong>
-                    1. Ziuchkovski et al. (2008). <i>Am J Orthod Dentofacial Orthop.</i><br>
-                    2. Rosvall et al. (2009). <i>Am J Orthod Dentofacial Orthop.</i><br>
-                    3. Jeremiah et al. (2011). <i>Eur J Orthod.</i>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <script>
-        let currentStep = 0;
-        const totalSteps = 5; // Form steps: 0 to 5 (6 is success)
+    <div
+        class="w-full max-w-md bg-bgCard rounded-[0.5rem] shadow-xl border border-slate-700/50 relative z-10 mt-4 sm:mt-0">
+        <div class="h-1.5 w-full bg-slate-800 rounded-t-[0.5rem] overflow-hidden">
+            <div id="progress-bar" class="h-full bg-primary transition-all duration-500 ease-out" style="width: 0%;">
+            </div>
+        </div>
+        <div id="survey-container" class="p-6 sm:p-8"></div>
+    </div>
 
-        function updateProgress() {
-            // Calculate progress percentage
-            let progress = (currentStep / totalSteps) * 100;
-            if (currentStep === 6) progress = 100; // Final screen
-            // Ensure minimum width so it's visible at step 0
-            document.getElementById('progress-bar').style.width = Math.max(5, progress) + '%';
+    <script>
+        let surveyData = {};
+        let currentStep = -1;
+        let responses = {};
+        let questionObserver = null;
+
+        async function loadSurvey() {
+            try {
+                // Using dummy data for demonstration if API fails
+                const res = await fetch('https://engine.dentnet.space/api/appliance_survey/config');
+                surveyData = await res.json();
+                renderIntro();
+            } catch (err) {
+                document.getElementById('survey-container').innerHTML = `<p class="text-red-400 text-center text-sm">خطا در بارگذاری اطلاعات. لطفا از اجرای سرور محلی اطمینان حاصل کنید.</p>`;
+            }
         }
 
-        function transitionStep(oldStep, newStep) {
-            const oldEl = document.getElementById(`step-${oldStep}`);
-            const newEl = document.getElementById(`step-${newStep}`);
+        function renderIntro() {
+            const html = `
+                <div id="step--1" class="step active text-center">
+                    <h1 class="text-2xl sm:text-3xl font-black text-white mb-4 leading-tight">${surveyData.title || 'ارزیابی'}</h1>
+                    <p class="text-textMuted text-sm mb-10 leading-relaxed">${surveyData.intro_text || 'متن خوش‌آمدگویی'}</p>
+                    <button onclick="changeStep(0)" class="w-full bg-primary text-white font-bold py-4 rounded-xl active:bg-primaryHover active:scale-[0.98] transition-all text-lg">شروع ارزیابی</button>
+                </div>
+            `;
+            document.getElementById('survey-container').innerHTML = html;
+        }
 
-            // Fade out old step
-            oldEl.style.opacity = '0';
-            oldEl.style.transform = 'translateY(-20px) scale(0.98)';
+        function renderQuestions(questions) {
+            return questions.map((q, index) => {
+                // Determine zoom state from JSON, fallback to a cycle for demonstration
+                const zoomState = q.zoom || ['far', 'near', 'closeup'][index % 3];
+
+                let questionContent = '';
+
+                if (q.type === 'radio') {
+                    const opts = q.options.map(opt => `
+                        <label class="block cursor-pointer">
+                            <input type="radio" name="${q.id}" value="${opt.val}" class="peer sr-only" onchange="saveResponse('${q.id}', this.value)">
+                            <div class="rounded-xl border border-slate-600 bg-slate-800/50 p-4 text-center text-sm font-medium text-textMuted transition-all duration-200 peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:text-primary active:scale-95 flex items-center justify-center min-h-[56px]">${opt.text}</div>
+                        </label>
+                    `).join('');
+                    questionContent = `
+                        <label class="block text-sm font-medium text-white mb-4 leading-relaxed">${q.label}</label>
+                        <div class="grid grid-cols-2 gap-3">${opts}</div>`;
+                }
+
+                if (q.type === 'slider') {
+                    const min = parseFloat(q.min);
+                    const max = parseFloat(q.max);
+                    const midVal = Math.ceil((max - min) / 2) + min;
+
+                    if (!responses.hasOwnProperty(q.id)) {
+                        responses[q.id] = midVal;
+                    }
+                    const currentVal = responses[q.id];
+                    const percent = ((currentVal - min) / (max - min)) * 95 + 2;
+
+                    questionContent = `
+                        <label class="block text-sm font-medium text-white mb-10 leading-relaxed text-center">${q.label}</label>
+                        <div class="relative pt-2 pb-2" dir="ltr">
+                            <div id="bubble_${q.id}" class="absolute -top-8 w-9 h-9 -ml-[16px] bg-primary flex items-center justify-center rounded-xl rotate-45 transition-all duration-75 ease-out z-10" style="left: ${percent}%;">
+                                <span class="-rotate-45 font-bold text-white text-sm mt-0.5 ml-0.5">${currentVal}</span>
+                            </div>
+                            <input type="range" id="${q.id}" min="${q.min}" max="${q.max}" value="${currentVal}" class="w-full relative z-20" oninput="updateSliderBubble(this, '${q.id}'); saveResponse('${q.id}', this.value)">
+                        </div>
+                        <div class="flex justify-between text-xs mt-4 font-medium px-1 text-textMuted" dir="ltr">
+                            <span class="text-left w-1/2">${q.left_label}</span>
+                            <span class="text-right w-1/2">${q.right_label}</span>
+                        </div>`;
+                }
+
+                // Wrap EVERY question in an observer block
+                return `
+                    <div class="question-block mb-5 p-5 rounded-2xl bg-slate-800/50 border border-slate-700" data-zoom="${zoomState}">
+                        ${questionContent}
+                    </div>`;
+            }).join('');
+        }
+
+        function renderStepContent(stepIndex) {
+            const step = surveyData.steps[stepIndex];
+            const isLast = stepIndex === surveyData.steps.length - 1;
+
+            // ISOLATED INNER WRAPPER STRATEGY
+            let imageHtml = step.image ? `
+            <div class="h-[260px] sticky top-2 sm:top-4 z-30 mb-8 relative rounded-2xl border border-slate-700 bg-slate-800 overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)]">
+                <pinch-zoom disable-pan="true" animating="true">
+                    <div class="image-container-wrapper">
+                        <img id="auto-zoom-image" src="${step.image}" alt="Step Image" 
+                            class="w-full h-full object-contain"
+                            style="transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1); will-change: transform; transform: scale(1); transform-origin: center center;">
+                    </div>
+                </pinch-zoom>
+            </div>` : '';
+
+            let btnHtml = `
+                <div class="mt-8 flex gap-3">
+                    <button onclick="changeStep(${stepIndex - 1})" class="w-1/3 bg-slate-700 text-white font-medium py-3.5 rounded-xl active:bg-slate-600 transition-colors text-sm">بازگشت</button>
+                    ${isLast
+                    ? `<button onclick="submitData()" class="w-2/3 bg-primary text-white font-bold py-3.5 rounded-xl active:bg-primaryHover transition-colors text-sm">پایان و ثبت</button>`
+                    : `<button onclick="validateAndNext(${stepIndex})" class="w-2/3 bg-primary text-white font-bold py-3.5 rounded-xl active:bg-primaryHover transition-colors text-sm">ادامه</button>`
+                }
+                </div>`;
+
+            let stepIntroHtml = step.intro ? `<p class="text-textMuted text-sm mb-6 leading-relaxed bg-slate-800/80 p-4 rounded-xl border border-slate-700">${step.intro}</p>` : '';
+
+            return `
+                <div id="step-content-${stepIndex}" class="step active">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-white">${step.title}</h3>
+                    </div>
+                    ${imageHtml}
+                    <div class="space-y-4 pt-2">${renderQuestions(step.questions)}</div>
+                    ${btnHtml}
+                </div>`;
+        }
+
+        // --- Intersection Observer Logic ---
+        // The scroll listener that creates the "smooth scrub" effect
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            // Debounce: Only update zoom when user stops scrolling for 50ms
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const blocks = document.querySelectorAll('.question-block');
+                blocks.forEach(block => {
+                    const rect = block.getBoundingClientRect();
+                    // Check if the block is in the "active zone" (middle of screen)
+                    if (rect.top < window.innerHeight * 0.6 && rect.bottom > window.innerHeight * 0.4) {
+                        applyAutoZoom(block.getAttribute('data-zoom'));
+                    }
+                });
+            }, 50);
+        }, { passive: true });
+
+        // Keep only this one:
+        function applyAutoZoom(level) {
+            const img = document.getElementById('auto-zoom-image');
+            if (!img) return;
+
+            let scale = 1;
+            let yOffset = 0; // Moves the image up/down to center teeth
+
+            if (level === 'far') {
+                scale = 1;
+                yOffset = 0;
+            } else if (level === 'near') {
+                scale = 1.6;
+                yOffset = 0; // Shifts up to center the mouth area
+            } else if (level === 'closeup') {
+                scale = 3.9;
+                yOffset = -15; // Shifts further up to center the teeth
+            }
+
+            // Apply both in one single transform string for perfect motion
+            img.style.transform = `scale(${scale}) translateY(${yOffset}%)`;
+        }
+        // --- Interactive Logic ---
+        function saveResponse(key, val) { responses[key] = val; }
+
+        function updateSliderBubble(slider, qId) {
+            const val = slider.value;
+            const min = parseFloat(slider.min);
+            const max = parseFloat(slider.max);
+            const raw = ((val - min) / (max - min)) * 95 + 3;
+            const percent = Math.max(0, raw < 5 ? 0 : raw);
+            const bubble = document.getElementById('bubble_' + qId);
+            if (bubble) {
+                bubble.style.left = `calc(${percent}% + (${8 - percent * 0.15}px))`;
+                const textSpan = bubble.firstElementChild;
+                if (textSpan) textSpan.innerText = val;
+            }
+        }
+
+        function togglePhotosModal() {
+            const modal = document.getElementById('photos-modal');
+            const content = document.getElementById('photos-modal-content');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('translate-y-full');
+                    if (window.innerWidth < 640) document.body.style.overflow = 'hidden';
+                }, 10);
+            } else {
+                modal.classList.add('opacity-0');
+                content.classList.add('translate-y-full');
+                document.body.style.overflow = '';
+                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            }
+        }
+
+        function handleOutsideClick(event) {
+            if (event.target.id === 'photos-modal') togglePhotosModal();
+        }
+
+        function validateAndNext(stepIndex) {
+            const step = surveyData.steps[stepIndex];
+            for (let q of step.questions) {
+                if (q.type === 'radio' && !responses[q.id]) {
+                    alert('لطفاً پیش از ادامه، به تمامی سوالات این بخش پاسخ دهید.');
+                    return;
+                }
+            }
+            changeStep(stepIndex + 1);
+        }
+
+
+
+        function changeStep(targetIndex) {
+            const container = document.getElementById('survey-container');
+            const firstChild = container.firstElementChild;
+
+            if (firstChild) {
+                firstChild.style.opacity = '0';
+                firstChild.style.transform = 'translateY(-10px)';
+            }
 
             setTimeout(() => {
-                oldEl.classList.remove('active');
-                oldEl.style.transform = ''; // reset for future use
+                if (targetIndex === -1) {
+                    renderIntro();
+                } else if (targetIndex >= surveyData.steps.length) {
+                    renderSuccess();
+                } else {
+                    container.innerHTML = renderStepContent(targetIndex);
 
-                newEl.classList.add('active');
+                    // INITIALIZE OBSERVER ONCE CONTENT IS RENDERED
+                    // setupIntersectionObserver();
+                }
 
-                // Trigger reflow to restart animation
-                void newEl.offsetWidth;
+                if (targetIndex >= 0 && targetIndex < surveyData.steps.length) {
+                    surveyData.steps[targetIndex].questions.forEach(q => {
+                        if (q.type === 'radio' && responses[q.id]) {
+                            const radio = document.querySelector(`input[name="${q.id}"][value="${responses[q.id]}"]`);
+                            if (radio) radio.checked = true;
+                        }
+                    });
+                }
 
-                // Fade in new step
-                newEl.style.opacity = '1';
-                newEl.style.transform = 'translateY(0) scale(1)';
-
+                currentStep = targetIndex;
                 updateProgress();
+
+                const fab = document.getElementById('fab-photos');
+                if (currentStep > 1 && currentStep < surveyData.steps.length) {
+                    fab.classList.remove('hidden');
+                    fab.classList.add('flex');
+                } else {
+                    fab.classList.add('hidden');
+                    fab.classList.remove('flex');
+                }
+
                 window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 300); // 300ms matches CSS transition duration visually
+            }, 300);
         }
 
-        function nextStep(step) {
-            // Validations
-            if (currentStep === 1) {
-                const gender = document.querySelector('input[name="q_gender"]:checked');
-                const edu = document.querySelector('input[name="q_edu"]:checked');
-                const hist = document.querySelector('input[name="q_history"]:checked');
-                const dent = document.querySelector('input[name="q_dentist"]:checked');
-                const age = document.getElementById('q_age').value;
+        function updateProgress() {
+            let pct = currentStep === -1 ? 5 : ((currentStep + 1) / (surveyData.steps.length + 1)) * 100;
+            document.getElementById('progress-bar').style.width = pct + '%';
+        }
 
-                if (!gender || !edu || !hist || !dent || !age) {
-                    alert('لطفاً تمام اطلاعات جمعیت‌شناختی را تکمیل کنید.');
+        async function submitData() {
+            const lastStep = surveyData.steps[surveyData.steps.length - 1];
+            for (let q of lastStep.questions) {
+                if (q.type === 'radio' && !responses[q.id]) {
+                    alert('لطفاً به تمامی سوالات پاسخ دهید.');
                     return;
                 }
             }
-            if (currentStep === 4) {
-                const accA = document.querySelector('input[name="q_acc_a"]:checked');
-                const accB = document.querySelector('input[name="q_acc_b"]:checked');
-                if (!accA || !accB) {
-                    alert('لطفاً میزان پذیرش هر دو دستگاه را انتخاب کنید.');
-                    return;
-                }
+            changeStep(surveyData.steps.length);
+            try {
+                await fetch("https://engine.dentnet.space/api/appliance_survey/data", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ responses: responses })
+                });
+            } catch (err) {
+                console.error("Submission failed", err);
             }
-
-            const old = currentStep;
-            currentStep = step;
-            transitionStep(old, currentStep);
         }
 
-        function prevStep(step) {
-            const old = currentStep;
-            currentStep = step;
-
-            // For reverse animation, you could apply different transforms, 
-            // but for simplicity we use the same smooth transition engine.
-            transitionStep(old, currentStep);
+        function renderSuccess() {
+            document.getElementById('survey-container').innerHTML = `
+                <div class="step active text-center py-10">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/20 flex items-center justify-center border border-primary/50">
+                        <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-black text-white mb-4">با موفقیت ثبت شد!</h2>
+                    <p class="text-textMuted text-sm leading-relaxed">از زمان و دقتی که برای پیشبرد این پژوهش علمی صرف کردید بی‌نهایت سپاسگزاریم.</p>
+                </div>`;
+            document.getElementById('progress-bar').style.width = '100%';
         }
 
-        function submitForm() {
-            // Final Validation step 5
-            const prof = document.querySelector('input[name="q_soc_prof"]:checked');
-            const attn = document.querySelector('input[name="q_soc_attn"]:checked');
-            if (!prof || !attn) {
-                alert('لطفاً به هر دو سوال این بخش پاسخ دهید.');
+        loadSurvey();
+
+        // 1. PERFECT Centered Wheel Zoom (Using exact math)
+        document.addEventListener('wheel', (e) => {
+            const pz = e.target.closest('pinch-zoom');
+            if (!pz) return;
+
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.05 : 0.95;
+            const newScale = Math.max(1, Math.min(pz.scale * zoomFactor, 5));
+
+            if (newScale <= 1) {
+                pz.setTransform({ scale: 1, x: 0, y: 0 });
                 return;
             }
 
-            // Data Collection Object (Ready for API / Google Apps Script)
-            const formData = {
-                gender: document.querySelector('input[name="q_gender"]:checked').value,
-                age: document.getElementById('q_age').value,
-                education: document.querySelector('input[name="q_edu"]:checked').value,
-                ortho_history: document.querySelector('input[name="q_history"]:checked').value,
-                is_dentist: document.querySelector('input[name="q_dentist"]:checked').value,
-                vas_a: document.getElementById('q_vas_a').value,
-                vas_b: document.getElementById('q_vas_b').value,
-                acc_a: document.querySelector('input[name="q_acc_a"]:checked').value,
-                acc_b: document.querySelector('input[name="q_acc_b"]:checked').value,
-                soc_professional: document.querySelector('input[name="q_soc_prof"]:checked').value,
-                soc_attention: document.querySelector('input[name="q_soc_attn"]:checked').value,
-            };
+            const newX = (pz.offsetWidth - (pz.offsetWidth * newScale)) / 2;
+            const newY = (pz.offsetHeight - (pz.offsetHeight * newScale)) / 2;
+            pz.setTransform({ scale: newScale, x: newX, y: newY });
 
-            console.log("Scientific Data ready for backend:", formData);
+        }, { passive: false });
 
-            // Transition to Success Step
-            const old = currentStep;
-            currentStep = 6;
-            transitionStep(old, currentStep);
+        // 2. Smooth "Snap-Back" Function (Unaffected by outer wrapper)
+        function resetZoomSmoothly(pz) {
+            if (pz.scale === 1 && pz.x === 0 && pz.y === 0) return;
 
-            // Change progress bar color to success
-            const pb = document.getElementById('progress-bar');
-            pb.classList.remove('from-secondary', 'to-primary');
-            pb.classList.add('bg-gradient-to-r', 'from-[#00f2fe]', 'to-[#4facfe]');
-
-
-            fetch("https://attendance.rlh.ir/appliance_survey/api/submit", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
-            })
-                .then(() => {
-                    transitionStep(currentStep, 6);
-                    currentStep = 6;
-                });
+            // Target the wrapper div that pinch-zoom is actively manipulating
+            const innerWrapper = pz.firstElementChild;
+            if (innerWrapper) {
+                innerWrapper.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)';
+                setTimeout(() => {
+                    if (innerWrapper) innerWrapper.style.transition = 'none';
+                }, 300);
+            }
+            pz.setTransform({ scale: 1, x: 0, y: 0 });
         }
 
-// Select the main panel to toggle overflow during zoom
-        const mainPanel = document.querySelector('.glass-panel');
-
-        // Initialize Instagram-like pan and zoom for images
-        document.querySelectorAll('.zoomable-img').forEach(img => {
-            const panzoom = Panzoom(img, {
-                maxScale: 6,
-                step: 0.6,
-                panOnlyWhenZoomed: true, // Prevents image from sliding around with 1 finger when not zoomed
+        // 3. Catch all release events
+        ['pointerup', 'pointercancel', 'pointerleave', 'touchend'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                document.querySelectorAll('pinch-zoom').forEach(pz => resetZoomSmoothly(pz));
             });
-            
-            // Allow zoom with mouse wheel on desktop (zooms centered on your cursor)
-            img.parentElement.addEventListener('wheel', function(e) {
-                e.preventDefault(); 
-                panzoom.zoomWithWheel(e);
-            }, { passive: false });
-            
-            // When user starts interacting, bring image to the absolute front
-            img.addEventListener('panzoomstart', () => {
-                img.style.position = 'relative';
-                img.style.zIndex = '9999';
-                if(mainPanel) mainPanel.style.overflow = 'visible'; // Allow breaking out of the card
-            });
-
-            // Instagram-style snap back on touch release or mouse release
-            const resetZoom = (e) => { 
-                // CRITICAL FIX: If the user still has at least 1 finger on the screen, DO NOT reset yet!
-                if (e && e.touches && e.touches.length > 0) return;
-
-                panzoom.reset({ animate: true });
-                
-                // Wait for the reset animation to finish before hiding overflow again
-                setTimeout(() => {
-                    // Only hide if the user hasn't started zooming again
-                    if (panzoom.getScale() <= 1) {
-                        img.style.zIndex = 'auto';
-                        if(mainPanel) mainPanel.style.overflow = 'hidden';
-                    }
-                }, 300);
-            };
-            
-            img.addEventListener('touchend', resetZoom);
-            img.addEventListener('touchcancel', resetZoom); // Catches system interruptions (like a swipe gesture)
-            img.addEventListener('mouseup', resetZoom);
-            img.addEventListener('mouseleave', resetZoom);
         });
     </script>
 </body>
