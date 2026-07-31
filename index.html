@@ -229,33 +229,59 @@
         let responses = {};
         let questionObserver = null;
 
-        async function loadSurvey() {
-            const urls = [
-                'https://engine.dentnet.space/api/appliance_survey/config',
-                'https://attendance.rlh.ir/appliance_survey/survey_config.json',
-                './survey_config.json'
+        function loadSurvey() {
+            // متغیرهایی برای رهگیری وضعیت درخواست‌ها
+            let currentLoadedPriority = Infinity; // در ابتدا هیچ اولویتی لود نشده است
+            let pendingRequests = 3;
+
+            // ۱. نمایش لودینگ (Spinner) پیش از دریافت اطلاعات
+            document.getElementById('survey-container').innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16">
+                    <svg class="animate-spin h-10 w-10 text-primary mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-textMuted text-sm font-medium animate-pulse">در حال دریافت اطلاعات پژوهش...</p>
+                </div>
+            `;
+
+            // ۲. لیست منابع به همراه اولویت (عدد کمتر = اولویت بالاتر)
+            const sources = [
+                { url: 'https://engine.dentnet.space/api/appliance_survey/config', priority: 1 },
+                { url: 'https://attendance.rlh.ir/appliance_survey/survey_config.json', priority: 2 },
+                { url: './survey_config.json', priority: 3 }
             ];
 
-            for (const url of urls) {
+            // ۳. اجرای تمامی درخواست‌ها به صورت کاملاً همزمان (بدون مسدود کردن یکدیگر)
+            sources.forEach(async (source) => {
                 try {
-                    const res = await fetch(url);
+                    const res = await fetch(source.url);
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const data = await res.json();
                     
-                    surveyData = await res.json();
-                    renderIntro();
-                    return; // Stop as soon as one works
+                    // ۴. بررسی اولویت:
+                    // اگر این دیتایی که الان لود شده اولویت بالاتری نسبت به دیتای فعلی دارد، جایگزینش کن
+                    if (source.priority < currentLoadedPriority) {
+                        currentLoadedPriority = source.priority;
+                        surveyData = data;
+                        renderIntro(); // رندر کردن رابط کاربری با اطلاعات جدید
+                    }
                 } catch (err) {
-                    console.warn(`Failed to load config from ${url}:`, err);
+                    console.warn(`Failed to load config from ${source.url}:`, err);
+                } finally {
+                    pendingRequests--;
+                    
+                    // ۵. اگر هر ۳ درخواست تمام شدند اما هیچ‌کدام موفقیت‌آمیز نبودند
+                    if (pendingRequests === 0 && currentLoadedPriority === Infinity) {
+                        document.getElementById('survey-container').innerHTML = `
+                            <div class="py-10 text-center">
+                                <p class="text-red-400 text-sm mb-2 font-bold">خطا در دریافت اطلاعات</p>
+                                <p class="text-slate-500 text-xs">لطفاً اتصال اینترنت یا وجود فایل survey_config.json را بررسی کنید.</p>
+                            </div>`;
+                    }
                 }
-            }
-
-            // If all 3 fail
-            document.getElementById('survey-container').innerHTML = `
-                <p class="text-red-400 text-center text-sm">
-                    خطا در بارگذاری اطلاعات. لطفا اتصال اینترنت یا فایل محلی survey_config.json را بررسی کنید.
-                </p>`;
+            });
         }
-
         function renderIntro() {
             const html = `
                 <div id="step--1" class="step active text-center">
