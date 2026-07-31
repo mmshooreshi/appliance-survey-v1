@@ -19,14 +19,13 @@ export default async function handler(req, res) {
 
     const chatIds = chatIdsString.split(',');
 
-    // ۱. ساخت متن پیام برای ارسال سریع
-    let messageText = "📋 *ثبت جدید پاسخ‌نامه*\n\n";
+    // ۱. استفاده از HTML به جای Markdown برای جلوگیری از کرش کردن تلگرام بخاطر کاراکترهای خاص (مثل _)
+    let messageText = "📋 <b>ثبت جدید پاسخ‌نامه</b>\n\n";
     for (const [key, value] of Object.entries(responses)) {
-        messageText += `• *${key}:* ${value}\n`;
+        messageText += `• <b>${key}:</b> ${value}\n`;
     }
 
     // ۲. ساختاردهی اطلاعات به فرمت CSV
-    // فرار دادن مقادیر درون دابل‌کوتیشن برای جلوگیری از مشکل کاما در متن‌ها
     const escapeCSV = (val) => `"${String(val).replace(/"/g, '""')}"`;
     const csvHeaders = Object.keys(responses).map(escapeCSV).join(',');
     const csvValues = Object.values(responses).map(escapeCSV).join(',');
@@ -38,37 +37,32 @@ export default async function handler(req, res) {
         const sendPromises = chatIds.map(async (chatId) => {
             const trimmedChatId = chatId.trim();
 
-            // الف) ارسال پیام متنی (اختیاری برای دیدن سریع نتایج)
+            // الف) ارسال پیام متنی با فرمت HTML
             await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     chat_id: trimmedChatId,
                     text: messageText,
-                    parse_mode: "Markdown"
+                    parse_mode: "HTML" // اصلاح شد
                 })
-            });
+            }).catch(err => console.error("Text msg error:", err)); // لاگ گرفتن ارور احتمالی بدون متوقف کردن فایل
 
             // ب) ارسال فایل CSV
             const formData = new FormData();
             formData.append('chat_id', trimmedChatId);
             formData.append('caption', '📁 فایل خروجی (CSV)');
             
-            // تبدیل استرینگ به فایل برای ارسال در فرم‌دیتا
             const csvBlob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            
-            // ایجاد نام فایل بر اساس تاریخ و زمان
             const fileName = `survey_result_${Date.now()}.csv`;
             formData.append('document', csvBlob, fileName);
 
-            // فراخوانی متد sendDocument از API تلگرام
             return fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
                 method: "POST",
                 body: formData
             });
         });
 
-        // صبر می‌کنیم تا ارسال برای تمام Chat ID ها انجام شود
         await Promise.all(sendPromises);
         return res.status(200).json({ success: true });
         
