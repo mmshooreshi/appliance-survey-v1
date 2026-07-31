@@ -230,9 +230,17 @@
         let questionObserver = null;
 
         function loadSurvey() {
-            // متغیرهایی برای رهگیری وضعیت درخواست‌ها
-            let currentLoadedPriority = Infinity; // در ابتدا هیچ اولویتی لود نشده است
+            let currentLoadedPriority = Infinity;
             let pendingRequests = 3;
+
+            // تابع استاندارد برای بُر زدن (تصادفی‌سازی) یک آرایه
+            const shuffleArray = (array) => {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            };
 
             // ۱. نمایش لودینگ (Spinner) پیش از دریافت اطلاعات
             document.getElementById('survey-container').innerHTML = `
@@ -245,33 +253,59 @@
                 </div>
             `;
 
-            // ۲. لیست منابع به همراه اولویت (عدد کمتر = اولویت بالاتر)
             const sources = [
                 { url: 'https://engine.dentnet.space/api/appliance_survey/config', priority: 1 },
                 { url: 'https://attendance.rlh.ir/appliance_survey/survey_config.json', priority: 2 },
                 { url: './survey_config.json', priority: 3 }
             ];
 
-            // ۳. اجرای تمامی درخواست‌ها به صورت کاملاً همزمان (بدون مسدود کردن یکدیگر)
             sources.forEach(async (source) => {
                 try {
                     const res = await fetch(source.url);
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const data = await res.json();
+                    let data = await res.json();
                     
-                    // ۴. بررسی اولویت:
-                    // اگر این دیتایی که الان لود شده اولویت بالاتری نسبت به دیتای فعلی دارد، جایگزینش کن
                     if (source.priority < currentLoadedPriority) {
                         currentLoadedPriority = source.priority;
+                        
+                        // ۴. تصادفی‌سازی بخش‌های ۳، ۴ و ۵ (ایندکس‌های ۲، ۳ و ۴ آرایه)
+                        if (data.steps && data.steps.length >= 5) {
+                            // ذخیره عنوان‌های اصلی به ترتیب (بخش ۳، بخش ۴، بخش ۵)
+                            const originalTitles = [
+                                data.steps[2].title,
+                                data.steps[3].title,
+                                data.steps[4].title
+                            ];
+
+                            // کپی گرفتن از آبجکت‌ها برای جلوگیری از تداخل دیتا
+                            let stepsToRandomize = [
+                                { ...data.steps[2] },
+                                { ...data.steps[3] },
+                                { ...data.steps[4] }
+                            ];
+
+                            // بُر زدن محتویات
+                            const shuffledSteps = shuffleArray(stepsToRandomize);
+
+                            // برگرداندن عنوان‌های ثابت به محتویات بُر خورده
+                            shuffledSteps[0].title = originalTitles[0];
+                            shuffledSteps[1].title = originalTitles[1];
+                            shuffledSteps[2].title = originalTitles[2];
+
+                            // جایگذاری در دیتای اصلی
+                            data.steps[2] = shuffledSteps[0];
+                            data.steps[3] = shuffledSteps[1];
+                            data.steps[4] = shuffledSteps[2];
+                        }
+
                         surveyData = data;
-                        renderIntro(); // رندر کردن رابط کاربری با اطلاعات جدید
+                        renderIntro(); 
                     }
                 } catch (err) {
                     console.warn(`Failed to load config from ${source.url}:`, err);
                 } finally {
                     pendingRequests--;
                     
-                    // ۵. اگر هر ۳ درخواست تمام شدند اما هیچ‌کدام موفقیت‌آمیز نبودند
                     if (pendingRequests === 0 && currentLoadedPriority === Infinity) {
                         document.getElementById('survey-container').innerHTML = `
                             <div class="py-10 text-center">
@@ -282,6 +316,7 @@
                 }
             });
         }
+        
         function renderIntro() {
             const html = `
                 <div id="step--1" class="step active text-center">
