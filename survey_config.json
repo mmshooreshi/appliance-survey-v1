@@ -1,679 +1,714 @@
 {
-  "title": "پژوهش زیبایی‌شناسی ارتودنسی",
-  "intro_text": "با سلام و احترام. این پرسشنامه با هدف بررسی میزان جذابیت ظاهری و پذیرش اجتماعی انواع دستگاه‌های ارتودنسی طراحی شده است. پاسخ‌دهی حدود ۱۰ دقیقه زمان می‌برد و تمامی اطلاعات محرمانه خواهد ماند.",
-  "steps": [
-    {
-      "title": "بخش ۱: اطلاعات فردی",
-      "step_id": "demographics_1",
-      "questions": [
+    "title": "پژوهش زیبایی‌شناسی ارتودنسی",
+    "intro_text": "با سلام و احترام. این پرسشنامه با هدف بررسی میزان جذابیت ظاهری و پذیرش اجتماعی انواع دستگاه‌های ارتودنسی طراحی شده است. پاسخ‌دهی حدود ۱۰ دقیقه زمان می‌برد و تمامی اطلاعات محرمانه خواهد ماند.",
+    "steps": [
         {
-          "id": "q_age",
-          "type": "radio",
-          "label": "سن شما:",
-          "options": [
-            { "val": "<18", "text": "زیر ۱۸ سال" },
-            { "val": "18-24", "text": "۱۸ تا ۲۴ سال" },
-            { "val": "25-34", "text": "۲۵ تا ۳۴ سال" },
-            { "val": "35-44", "text": "۳۵ تا ۴۴ سال" },
-            { "val": "45-54", "text": "۴۵ تا ۵۴ سال" },
-            { "val": "55+", "text": "۵۵ سال و بالاتر" }
-          ]
+            "title": "بخش ۱: اطلاعات فردی",
+            "step_id": "demographics_1",
+            "questions": [
+                {
+                    "id": "q_age",
+                    "type": "radio",
+                    "label": "سن شما:",
+                    "options": [
+                        {
+                            "val": "<18",
+                            "text": "زیر ۱۸ سال"
+                        },
+                        {
+                            "val": "18-24",
+                            "text": "۱۸ تا ۲۴ سال"
+                        },
+                        {
+                            "val": "25-34",
+                            "text": "۲۵ تا ۳۴ سال"
+                        },
+                        {
+                            "val": "35-44",
+                            "text": "۳۵ تا ۴۴ سال"
+                        },
+                        {
+                            "val": "45-54",
+                            "text": "۴۵ تا ۵۴ سال"
+                        },
+                        {
+                            "val": "55+",
+                            "text": "۵۵ سال و بالاتر"
+                        }
+                    ]
+                },
+                {
+                    "id": "q_gender",
+                    "type": "radio",
+                    "label": "جنسیت:",
+                    "options": [
+                        {
+                            "val": "male",
+                            "text": "مرد"
+                        },
+                        {
+                            "val": "female",
+                            "text": "زن"
+                        }
+                    ]
+                },
+                {
+                    "id": "q_edu",
+                    "type": "radio",
+                    "label": "آخرین مقطع تحصیلی:",
+                    "options": [
+                        {
+                            "val": "diploma",
+                            "text": "زیر دیپلم / دیپلم"
+                        },
+                        {
+                            "val": "student",
+                            "text": "دانشجو"
+                        },
+                        {
+                            "val": "bachelor",
+                            "text": "کارشناسی"
+                        },
+                        {
+                            "val": "master",
+                            "text": "کارشناسی ارشد"
+                        },
+                        {
+                            "val": "phd_md",
+                            "text": "دکتری و بالاتر"
+                        }
+                    ]
+                },
+                {
+                    "id": "q_marital",
+                    "type": "radio",
+                    "label": "وضعیت تأهل:",
+                    "options": [
+                        {
+                            "val": "single",
+                            "text": "مجرد"
+                        },
+                        {
+                            "val": "married",
+                            "text": "متأهل"
+                        }
+                    ]
+                },
+                {
+                    "id": "q_occupation",
+                    "type": "radio",
+                    "label": "وضعیت شغلی:",
+                    "options": [
+                        {
+                            "val": "student",
+                            "text": "دانشجو"
+                        },
+                        {
+                            "val": "employed",
+                            "text": "شاغل"
+                        },
+                        {
+                            "val": "self_employed",
+                            "text": "شغل آزاد"
+                        },
+                        {
+                            "val": "unemployed",
+                            "text": "بیکار / خانه‌دار"
+                        },
+                        {
+                            "val": "retired",
+                            "text": "بازنشسته"
+                        }
+                    ]
+                },
+                {
+                    "id": "q_dentist_screen",
+                    "type": "radio",
+                    "label": "آیا در حال حاضر در رشته‌های مرتبط با دندان‌پزشکی تحصیل می‌کنید یا مشغول به کار هستید؟",
+                    "options": [
+                        {
+                            "val": "yes",
+                            "text": "بله"
+                        },
+                        {
+                            "val": "no",
+                            "text": "خیر"
+                        }
+                    ]
+                }
+            ]
         },
         {
-          "id": "q_gender",
-          "type": "radio",
-          "label": "جنسیت:",
-          "options": [
-            { "val": "male", "text": "مرد" },
-            { "val": "female", "text": "زن" }
-          ]
+            "title": "بخش ۲",
+            "step_id": "demographics_2",
+            "questions": [
+                {
+                    "id": "q_history",
+                    "type": "radio",
+                    "label": "سابقه قبلی درمان ارتودنسی:",
+                    "options": [
+                        {
+                            "val": "fixed",
+                            "text": "بله، براکت ثابت (فلزی یا سرامیکی)"
+                        },
+                        {
+                            "val": "aligner",
+                            "text": "بله، الاینر شفاف"
+                        },
+                        {
+                            "val": "removable",
+                            "text": "بله، پلاک متحرک"
+                        },
+                        {
+                            "val": "multiple",
+                            "text": "بله، بیش از یک نوع دستگاه"
+                        },
+                        {
+                            "val": "no",
+                            "text": "خیر، سابقه ندارم"
+                        }
+                    ]
+                },
+                {
+                    "id": "q_current_need",
+                    "type": "radio",
+                    "label": "آیا در حال حاضر احساس می‌کنید به درمان ارتودنسی نیاز دارید؟",
+                    "options": [
+                        {
+                            "val": "yes_planned",
+                            "text": "بله، و برنامه درمان دارم"
+                        },
+                        {
+                            "val": "yes_no_plan",
+                            "text": "بله، اما هنوز اقدام نکرده‌ام"
+                        },
+                        {
+                            "val": "maybe",
+                            "text": "مطمئن نیستم"
+                        },
+                        {
+                            "val": "no",
+                            "text": "خیر"
+                        }
+                    ]
+                },
+                {
+                    "id": "q_satisfaction",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "label": "در حال حاضر چقدر از مرتب بودن و ظاهر لبخند خود رضایت دارید؟",
+                    "left_label": "کاملاً ناراضی",
+                    "right_label": "کاملاً راضی"
+                },
+                {
+                    "id": "q_importance_appearance",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "label": "ظاهر زیبای دندان‌ها به‌طور کلی چقدر برای شما اهمیت دارد؟",
+                    "left_label": "اصلاً مهم نیست",
+                    "right_label": "بسیار مهم است"
+                },
+                {
+                    "id": "q_social_media",
+                    "type": "radio",
+                    "label": "هر چند وقت یک‌بار محتوای مرتبط با زیبایی دندان را دنبال می‌کنید؟",
+                    "options": [
+                        {
+                            "val": "never",
+                            "text": "اصلاً"
+                        },
+                        {
+                            "val": "rarely",
+                            "text": "به ندرت"
+                        },
+                        {
+                            "val": "sometimes",
+                            "text": "گاهی اوقات"
+                        },
+                        {
+                            "val": "often",
+                            "text": "زیاد"
+                        },
+                        {
+                            "val": "everyday",
+                            "text": "هر روز"
+                        }
+                    ]
+                },
+                {
+                    "id": "q_familiarity",
+                    "type": "radio",
+                    "label": "تا چه حد با انواع دستگاه‌های ارتودنسی (فلزی، سرامیکی، الاینر شفاف) آشنایی دارید؟",
+                    "options": [
+                        {
+                            "val": "none",
+                            "text": "اصلاً آشنا نیستم"
+                        },
+                        {
+                            "val": "little",
+                            "text": "کمی آشنایی دارم"
+                        },
+                        {
+                            "val": "moderate",
+                            "text": "تا حدودی آشنا هستم"
+                        },
+                        {
+                            "val": "good",
+                            "text": "آشنایی خوبی دارم"
+                        },
+                        {
+                            "val": "expert",
+                            "text": "کاملاً آشنا هستم"
+                        }
+                    ]
+                }
+            ]
         },
         {
-          "id": "q_edu",
-          "type": "radio",
-          "label": "آخرین مقطع تحصیلی:",
-          "options": [
-            { "val": "diploma", "text": "زیر دیپلم / دیپلم" },
-            { "val": "student", "text": "دانشجو" },
-            { "val": "bachelor", "text": "کارشناسی" },
-            { "val": "master", "text": "کارشناسی ارشد" },
-            { "val": "phd_md", "text": "دکتری و بالاتر" }
-          ]
+            "image": "p-clear-aligner-1.png",
+            "intro": "لطفاً تصویر زیر را با دقت مشاهده کنید. با پیمایش پرسش‌ها، تصویر به‌تدریج روی بخش‌های مختلف زوم می‌شود. پاسخ‌ها را فقط بر اساس ظاهر لبخند و دستگاه ارتودنسی بدهید.",
+            "title": "بخش ۳",
+            "step_id": "aligner_eval",
+            "questions": [
+                {
+                    "id": "vas_aligner_overall",
+                    "max": 10,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "جذابیت کلی این لبخند را چگونه ارزیابی می‌کنید؟",
+                    "left_label": "کاملاً نازیبا",
+                    "right_label": "کاملاً زیبا"
+                },
+                {
+                    "id": "vas_aligner_distract",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "این دستگاه ارتودنسی تا چه حد جلب توجه می‌کند؟",
+                    "left_label": "اصلاً",
+                    "right_label": "بسیار زیاد"
+                },
+                {
+                    "id": "vas_aligner_prof",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "این لبخند برای یک محیط رسمی یا کاری چقدر مناسب به نظر می‌رسد؟",
+                    "left_label": "کاملاً نامناسب",
+                    "right_label": "بسیار مناسب"
+                },
+                {
+                    "id": "acc_aligner_work",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در محیط کار چقدر احساس خجالت می‌کردید؟",
+                    "left_label": "اصلاً",
+                    "right_label": "به‌شدت"
+                },
+                {
+                    "id": "acc_aligner_social",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در مهمانی یا دورهمی دوستانه چقدر احساس راحتی می‌کردید؟",
+                    "left_label": "اصلاً راحت نبودم",
+                    "right_label": "کاملاً راحت بودم"
+                },
+                {
+                    "id": "vas_aligner_device_impact",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "near",
+                    "label": "اجزای قابل مشاهده این دستگاه تا چه حد از جذابیت لبخند کاسته‌اند؟",
+                    "left_label": "اصلاً",
+                    "right_label": "کاملاً"
+                },
+                {
+                    "id": "vas_aligner_color_harmony",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "near",
+                    "label": "هماهنگی رنگ دستگاه با دندان‌ها را چگونه ارزیابی می‌کنید؟",
+                    "left_label": "کاملاً ناهماهنگ",
+                    "right_label": "کاملاً هماهنگ"
+                },
+                {
+                    "id": "psy_aligner_intel",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد چقدر باهوش به نظر می‌رسد؟",
+                    "left_label": "بسیار کم‌هوش",
+                    "right_label": "بسیار باهوش"
+                },
+                {
+                    "id": "psy_aligner_hygiene",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "به نظر شما این فرد چقدر به بهداشت دهان و دندان خود اهمیت می‌دهد؟",
+                    "left_label": "بسیار کم",
+                    "right_label": "بسیار زیاد"
+                },
+                {
+                    "id": "psy_aligner_attract",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد از نظر ظاهری (صرفاً ناحیه دهان و لبخند) چقدر جذاب به نظر می‌رسد؟",
+                    "left_label": "بسیار غیرجذاب",
+                    "right_label": "بسیار جذاب"
+                },
+                {
+                    "id": "psy_aligner_trust",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد چقدر صادق و قابل اعتماد به نظر می‌رسد؟",
+                    "left_label": "غیرقابل اعتماد",
+                    "right_label": "بسیار قابل اعتماد"
+                },
+                {
+                    "id": "psy_aligner_social",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد از نظر اجتماعی چقدر موفق و محبوب به نظر می‌رسد؟",
+                    "left_label": "بسیار کم",
+                    "right_label": "بسیار زیاد"
+                },
+                {
+                    "id": "psy_aligner_ses",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "تصور می‌کنید این فرد از نظر اقتصادی در چه سطحی قرار دارد؟",
+                    "left_label": "کم‌درآمد",
+                    "right_label": "پردرآمد"
+                },
+                {
+                    "id": "psy_aligner_confidence",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد چقدر با اعتمادبه‌نفس به نظر می‌رسد؟",
+                    "left_label": "بسیار کم",
+                    "right_label": "بسیار زیاد"
+                }
+            ]
         },
         {
-          "id": "q_marital",
-          "type": "radio",
-          "label": "وضعیت تأهل:",
-          "options": [
-            { "val": "single", "text": "مجرد" },
-            { "val": "married", "text": "متأهل" }
-          ]
+            "image": "p-ceramic-brackets-1.png",
+            "intro": "اکنون تصویر براکت سرامیکی (همرنگ دندان) را با همان معیارها ارزیابی کنید.",
+            "title": "بخش ۴",
+            "step_id": "ceramic_eval",
+            "questions": [
+                {
+                    "id": "vas_ceramic_overall",
+                    "max": 10,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "جذابیت کلی این لبخند را چگونه ارزیابی می‌کنید؟",
+                    "left_label": "کاملاً نازیبا",
+                    "right_label": "کاملاً زیبا"
+                },
+                {
+                    "id": "vas_ceramic_distract",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "این دستگاه ارتودنسی تا چه حد جلب توجه می‌کند؟",
+                    "left_label": "اصلاً",
+                    "right_label": "بسیار زیاد"
+                },
+                {
+                    "id": "vas_ceramic_prof",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "این لبخند برای یک محیط رسمی یا کاری چقدر مناسب به نظر می‌رسد؟",
+                    "left_label": "کاملاً نامناسب",
+                    "right_label": "بسیار مناسب"
+                },
+                {
+                    "id": "acc_ceramic_work",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در محیط کار چقدر احساس خجالت می‌کردید؟",
+                    "left_label": "اصلاً",
+                    "right_label": "به‌شدت"
+                },
+                {
+                    "id": "acc_ceramic_social",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در مهمانی یا دورهمی دوستانه چقدر احساس راحتی می‌کردید؟",
+                    "left_label": "اصلاً راحت نبودم",
+                    "right_label": "کاملاً راحت بودم"
+                },
+                {
+                    "id": "vas_ceramic_device_impact",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "near",
+                    "label": "اجزای قابل مشاهده این دستگاه تا چه حد از جذابیت لبخند کاسته‌اند؟",
+                    "left_label": "اصلاً",
+                    "right_label": "کاملاً"
+                },
+                {
+                    "id": "vas_ceramic_color_harmony",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "near",
+                    "label": "هماهنگی رنگ دستگاه با دندان‌ها را چگونه ارزیابی می‌کنید؟",
+                    "left_label": "کاملاً ناهماهنگ",
+                    "right_label": "کاملاً هماهنگ"
+                },
+                {
+                    "id": "psy_ceramic_intel",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد چقدر باهوش به نظر می‌رسد؟",
+                    "left_label": "بسیار کم‌هوش",
+                    "right_label": "بسیار باهوش"
+                },
+                {
+                    "id": "psy_ceramic_hygiene",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "به نظر شما این فرد چقدر به بهداشت دهان و دندان خود اهمیت می‌دهد؟",
+                    "left_label": "بسیار کم",
+                    "right_label": "بسیار زیاد"
+                },
+                {
+                    "id": "psy_ceramic_attract",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد از نظر ظاهری (صرفاً ناحیه دهان و لبخند) چقدر جذاب به نظر می‌رسد؟",
+                    "left_label": "بسیار غیرجذاب",
+                    "right_label": "بسیار جذاب"
+                },
+                {
+                    "id": "psy_ceramic_trust",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد چقدر صادق و قابل اعتماد به نظر می‌رسد؟",
+                    "left_label": "غیرقابل اعتماد",
+                    "right_label": "بسیار قابل اعتماد"
+                },
+                {
+                    "id": "psy_ceramic_social",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد از نظر اجتماعی چقدر موفق و محبوب به نظر می‌رسد؟",
+                    "left_label": "بسیار کم",
+                    "right_label": "بسیار زیاد"
+                },
+                {
+                    "id": "psy_ceramic_ses",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "تصور می‌کنید این فرد از نظر اقتصادی در چه سطحی قرار دارد؟",
+                    "left_label": "کم‌درآمد",
+                    "right_label": "پردرآمد"
+                },
+                {
+                    "id": "psy_ceramic_confidence",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد چقدر با اعتمادبه‌نفس به نظر می‌رسد؟",
+                    "left_label": "بسیار کم",
+                    "right_label": "بسیار زیاد"
+                }
+            ]
         },
         {
-          "id": "q_occupation",
-          "type": "radio",
-          "label": "وضعیت شغلی:",
-          "options": [
-            { "val": "student", "text": "دانشجو" },
-            { "val": "employed", "text": "شاغل" },
-            { "val": "self_employed", "text": "شغل آزاد" },
-            { "val": "unemployed", "text": "بیکار / خانه‌دار" },
-            { "val": "retired", "text": "بازنشسته" }
-          ]
-        },
-        {
-          "id": "q_dentist_screen",
-          "type": "radio",
-          "label": "آیا در حال حاضر در رشته‌های مرتبط با دندان‌پزشکی تحصیل می‌کنید یا مشغول به کار هستید؟",
-          "options": [
-            { "val": "yes", "text": "بله" },
-            { "val": "no", "text": "خیر" }
-          ]
+            "image": "p-metallic-brackets-1.png",
+            "intro": "اکنون تصویر براکت فلزی (معمولی) را با همان معیارها ارزیابی کنید.",
+            "title": "بخش ۵",
+            "step_id": "metal_eval",
+            "questions": [
+                {
+                    "id": "vas_metal_overall",
+                    "max": 10,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "جذابیت کلی این لبخند را چگونه ارزیابی می‌کنید؟",
+                    "left_label": "کاملاً نازیبا",
+                    "right_label": "کاملاً زیبا"
+                },
+                {
+                    "id": "vas_metal_distract",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "این دستگاه ارتودنسی تا چه حد جلب توجه می‌کند؟",
+                    "left_label": "اصلاً",
+                    "right_label": "بسیار زیاد"
+                },
+                {
+                    "id": "vas_metal_prof",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "این لبخند برای یک محیط رسمی یا کاری چقدر مناسب به نظر می‌رسد؟",
+                    "left_label": "کاملاً نامناسب",
+                    "right_label": "بسیار مناسب"
+                },
+                {
+                    "id": "acc_metal_work",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در محیط کار چقدر احساس خجالت می‌کردید؟",
+                    "left_label": "اصلاً",
+                    "right_label": "به‌شدت"
+                },
+                {
+                    "id": "acc_metal_social",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "far",
+                    "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در مهمانی یا دورهمی دوستانه چقدر احساس راحتی می‌کردید؟",
+                    "left_label": "اصلاً راحت نبودم",
+                    "right_label": "کاملاً راحت بودم"
+                },
+                {
+                    "id": "vas_metal_device_impact",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "near",
+                    "label": "اجزای قابل مشاهده این دستگاه تا چه حد از جذابیت لبخند کاسته‌اند؟",
+                    "left_label": "اصلاً",
+                    "right_label": "کاملاً"
+                },
+                {
+                    "id": "vas_metal_color_harmony",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "near",
+                    "label": "هماهنگی رنگ دستگاه با دندان‌ها را چگونه ارزیابی می‌کنید؟",
+                    "left_label": "کاملاً ناهماهنگ",
+                    "right_label": "کاملاً هماهنگ"
+                },
+                {
+                    "id": "psy_metal_intel",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد چقدر باهوش به نظر می‌رسد؟",
+                    "left_label": "بسیار کم‌هوش",
+                    "right_label": "بسیار باهوش"
+                },
+                {
+                    "id": "psy_metal_hygiene",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "به نظر شما این فرد چقدر به بهداشت دهان و دندان خود اهمیت می‌دهد؟",
+                    "left_label": "بسیار کم",
+                    "right_label": "بسیار زیاد"
+                },
+                {
+                    "id": "psy_metal_attract",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد از نظر ظاهری (صرفاً ناحیه دهان و لبخند) چقدر جذاب به نظر می‌رسد؟",
+                    "left_label": "بسیار غیرجذاب",
+                    "right_label": "بسیار جذاب"
+                },
+                {
+                    "id": "psy_metal_trust",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد چقدر صادق و قابل اعتماد به نظر می‌رسد؟",
+                    "left_label": "غیرقابل اعتماد",
+                    "right_label": "بسیار قابل اعتماد"
+                },
+                {
+                    "id": "psy_metal_social",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد از نظر اجتماعی چقدر موفق و محبوب به نظر می‌رسد؟",
+                    "left_label": "بسیار کم",
+                    "right_label": "بسیار زیاد"
+                },
+                {
+                    "id": "psy_metal_ses",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "تصور می‌کنید این فرد از نظر اقتصادی در چه سطحی قرار دارد؟",
+                    "left_label": "کم‌درآمد",
+                    "right_label": "پردرآمد"
+                },
+                {
+                    "id": "psy_metal_confidence",
+                    "max": 5,
+                    "min": 1,
+                    "type": "slider",
+                    "zoom": "closeup",
+                    "label": "این فرد چقدر با اعتمادبه‌نفس به نظر می‌رسد؟",
+                    "left_label": "بسیار کم",
+                    "right_label": "بسیار زیاد"
+                }
+            ]
         }
-      ]
-    },
-    {
-      "title": "بخش ۲: پیش‌زمینه و تجربه",
-      "step_id": "demographics_2",
-      "questions": [
-        {
-          "id": "q_history",
-          "type": "radio",
-          "label": "سابقه قبلی درمان ارتودنسی:",
-          "options": [
-            { "val": "fixed", "text": "بله، براکت ثابت (فلزی یا سرامیکی)" },
-            { "val": "aligner", "text": "بله، الاینر شفاف" },
-            { "val": "removable", "text": "بله، پلاک متحرک" },
-            { "val": "multiple", "text": "بله، بیش از یک نوع دستگاه" },
-            { "val": "no", "text": "خیر، سابقه ندارم" }
-          ]
-        },
-        {
-          "id": "q_current_need",
-          "type": "radio",
-          "label": "آیا در حال حاضر احساس می‌کنید به درمان ارتودنسی نیاز دارید؟",
-          "options": [
-            { "val": "yes_planned", "text": "بله، و برنامه درمان دارم" },
-            { "val": "yes_no_plan", "text": "بله، اما هنوز اقدام نکرده‌ام" },
-            { "val": "maybe", "text": "مطمئن نیستم" },
-            { "val": "no", "text": "خیر" }
-          ]
-        },
-        {
-          "id": "q_satisfaction",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "label": "در حال حاضر چقدر از مرتب بودن و ظاهر لبخند خود رضایت دارید؟",
-          "left_label": "کاملاً ناراضی",
-          "right_label": "کاملاً راضی"
-        },
-        {
-          "id": "q_importance_appearance",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "label": "ظاهر زیبای دندان‌ها به‌طور کلی چقدر برای شما اهمیت دارد؟",
-          "left_label": "اصلاً مهم نیست",
-          "right_label": "بسیار مهم است"
-        },
-        {
-          "id": "q_social_media",
-          "type": "radio",
-          "label": "هر چند وقت یک‌بار محتوای مرتبط با زیبایی دندان را دنبال می‌کنید؟",
-          "options": [
-            { "val": "never", "text": "اصلاً" },
-            { "val": "rarely", "text": "به ندرت" },
-            { "val": "sometimes", "text": "گاهی اوقات" },
-            { "val": "often", "text": "زیاد" },
-            { "val": "everyday", "text": "هر روز" }
-          ]
-        },
-        {
-          "id": "q_familiarity",
-          "type": "radio",
-          "label": "تا چه حد با انواع دستگاه‌های ارتودنسی (فلزی، سرامیکی، الاینر شفاف) آشنایی دارید؟",
-          "options": [
-            { "val": "none", "text": "اصلاً آشنا نیستم" },
-            { "val": "little", "text": "کمی آشنایی دارم" },
-            { "val": "moderate", "text": "تا حدودی آشنا هستم" },
-            { "val": "good", "text": "آشنایی خوبی دارم" },
-            { "val": "expert", "text": "کاملاً آشنا هستم" }
-          ]
-        }
-      ]
-    },
-    {
-      "image": "p-clear-aligner-1.png",
-      "intro": "لطفاً تصویر زیر را با دقت مشاهده کنید. با پیمایش پرسش‌ها، تصویر به‌تدریج روی بخش‌های مختلف زوم می‌شود. پاسخ‌ها را فقط بر اساس ظاهر لبخند و دستگاه ارتودنسی بدهید.",
-      "title": "بخش ۳: ارزیابی الاینر شفاف",
-      "step_id": "aligner_eval",
-      "questions": [
-        {
-          "id": "vas_aligner_overall",
-          "type": "slider",
-          "min": 1,
-          "max": 10,
-          "zoom": "far",
-          "label": "جذابیت کلی این لبخند را چگونه ارزیابی می‌کنید؟",
-          "left_label": "کاملاً نازیبا",
-          "right_label": "کاملاً زیبا"
-        },
-        {
-          "id": "vas_aligner_distract",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "این دستگاه ارتودنسی تا چه حد جلب توجه می‌کند؟",
-          "left_label": "اصلاً",
-          "right_label": "بسیار زیاد"
-        },
-        {
-          "id": "vas_aligner_prof",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "این لبخند برای یک محیط رسمی یا کاری چقدر مناسب به نظر می‌رسد؟",
-          "left_label": "کاملاً نامناسب",
-          "right_label": "بسیار مناسب"
-        },
-        {
-          "id": "acc_aligner_work",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در محیط کار چقدر احساس خجالت می‌کردید؟",
-          "left_label": "اصلاً",
-          "right_label": "به‌شدت"
-        },
-        {
-          "id": "acc_aligner_social",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در مهمانی یا دورهمی دوستانه چقدر احساس راحتی می‌کردید؟",
-          "left_label": "اصلاً راحت نبودم",
-          "right_label": "کاملاً راحت بودم"
-        },
-        {
-          "id": "vas_aligner_device_impact",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "near",
-          "label": "اجزای قابل مشاهده این دستگاه تا چه حد از جذابیت لبخند کاسته‌اند؟",
-          "left_label": "اصلاً",
-          "right_label": "کاملاً"
-        },
-        {
-          "id": "vas_aligner_color_harmony",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "near",
-          "label": "هماهنگی رنگ دستگاه با دندان‌ها را چگونه ارزیابی می‌کنید؟",
-          "left_label": "کاملاً ناهماهنگ",
-          "right_label": "کاملاً هماهنگ"
-        },
-        {
-          "id": "psy_aligner_intel",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد چقدر باهوش به نظر می‌رسد؟",
-          "left_label": "بسیار کم‌هوش",
-          "right_label": "بسیار باهوش"
-        },
-        {
-          "id": "psy_aligner_hygiene",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "به نظر شما این فرد چقدر به بهداشت دهان و دندان خود اهمیت می‌دهد؟",
-          "left_label": "بسیار کم",
-          "right_label": "بسیار زیاد"
-        },
-        {
-          "id": "psy_aligner_attract",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد از نظر ظاهری (صرفاً ناحیه دهان و لبخند) چقدر جذاب به نظر می‌رسد؟",
-          "left_label": "بسیار غیرجذاب",
-          "right_label": "بسیار جذاب"
-        },
-        {
-          "id": "psy_aligner_trust",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد چقدر صادق و قابل اعتماد به نظر می‌رسد؟",
-          "left_label": "غیرقابل اعتماد",
-          "right_label": "بسیار قابل اعتماد"
-        },
-        {
-          "id": "psy_aligner_social",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد از نظر اجتماعی چقدر موفق و محبوب به نظر می‌رسد؟",
-          "left_label": "بسیار کم",
-          "right_label": "بسیار زیاد"
-        },
-        {
-          "id": "psy_aligner_ses",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "تصور می‌کنید این فرد از نظر اقتصادی در چه سطحی قرار دارد؟",
-          "left_label": "کم‌درآمد",
-          "right_label": "پردرآمد"
-        },
-        {
-          "id": "psy_aligner_confidence",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد چقدر با اعتمادبه‌نفس به نظر می‌رسد؟",
-          "left_label": "بسیار کم",
-          "right_label": "بسیار زیاد"
-        }
-      ]
-    },
-    {
-      "image": "p-ceramic-brackets-1.png",
-      "intro": "اکنون تصویر براکت سرامیکی (همرنگ دندان) را با همان معیارها ارزیابی کنید.",
-      "title": "بخش ۴: ارزیابی براکت سرامیکی",
-      "step_id": "ceramic_eval",
-      "questions": [
-        {
-          "id": "vas_ceramic_overall",
-          "type": "slider",
-          "min": 1,
-          "max": 10,
-          "zoom": "far",
-          "label": "جذابیت کلی این لبخند را چگونه ارزیابی می‌کنید؟",
-          "left_label": "کاملاً نازیبا",
-          "right_label": "کاملاً زیبا"
-        },
-        {
-          "id": "vas_ceramic_distract",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "این دستگاه ارتودنسی تا چه حد جلب توجه می‌کند؟",
-          "left_label": "اصلاً",
-          "right_label": "بسیار زیاد"
-        },
-        {
-          "id": "vas_ceramic_prof",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "این لبخند برای یک محیط رسمی یا کاری چقدر مناسب به نظر می‌رسد؟",
-          "left_label": "کاملاً نامناسب",
-          "right_label": "بسیار مناسب"
-        },
-        {
-          "id": "acc_ceramic_work",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در محیط کار چقدر احساس خجالت می‌کردید؟",
-          "left_label": "اصلاً",
-          "right_label": "به‌شدت"
-        },
-        {
-          "id": "acc_ceramic_social",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در مهمانی یا دورهمی دوستانه چقدر احساس راحتی می‌کردید؟",
-          "left_label": "اصلاً راحت نبودم",
-          "right_label": "کاملاً راحت بودم"
-        },
-        {
-          "id": "vas_ceramic_device_impact",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "near",
-          "label": "اجزای قابل مشاهده این دستگاه تا چه حد از جذابیت لبخند کاسته‌اند؟",
-          "left_label": "اصلاً",
-          "right_label": "کاملاً"
-        },
-        {
-          "id": "vas_ceramic_color_harmony",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "near",
-          "label": "هماهنگی رنگ دستگاه با دندان‌ها را چگونه ارزیابی می‌کنید؟",
-          "left_label": "کاملاً ناهماهنگ",
-          "right_label": "کاملاً هماهنگ"
-        },
-        {
-          "id": "psy_ceramic_intel",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد چقدر باهوش به نظر می‌رسد؟",
-          "left_label": "بسیار کم‌هوش",
-          "right_label": "بسیار باهوش"
-        },
-        {
-          "id": "psy_ceramic_hygiene",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "به نظر شما این فرد چقدر به بهداشت دهان و دندان خود اهمیت می‌دهد؟",
-          "left_label": "بسیار کم",
-          "right_label": "بسیار زیاد"
-        },
-        {
-          "id": "psy_ceramic_attract",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد از نظر ظاهری (صرفاً ناحیه دهان و لبخند) چقدر جذاب به نظر می‌رسد؟",
-          "left_label": "بسیار غیرجذاب",
-          "right_label": "بسیار جذاب"
-        },
-        {
-          "id": "psy_ceramic_trust",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد چقدر صادق و قابل اعتماد به نظر می‌رسد؟",
-          "left_label": "غیرقابل اعتماد",
-          "right_label": "بسیار قابل اعتماد"
-        },
-        {
-          "id": "psy_ceramic_social",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد از نظر اجتماعی چقدر موفق و محبوب به نظر می‌رسد؟",
-          "left_label": "بسیار کم",
-          "right_label": "بسیار زیاد"
-        },
-        {
-          "id": "psy_ceramic_ses",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "تصور می‌کنید این فرد از نظر اقتصادی در چه سطحی قرار دارد؟",
-          "left_label": "کم‌درآمد",
-          "right_label": "پردرآمد"
-        },
-        {
-          "id": "psy_ceramic_confidence",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد چقدر با اعتمادبه‌نفس به نظر می‌رسد؟",
-          "left_label": "بسیار کم",
-          "right_label": "بسیار زیاد"
-        }
-      ]
-    },
-    {
-      "image": "p-metallic-brackets-1.png",
-      "intro": "اکنون تصویر براکت فلزی (معمولی) را با همان معیارها ارزیابی کنید.",
-      "title": "بخش ۵: ارزیابی براکت فلزی",
-      "step_id": "metal_eval",
-      "questions": [
-        {
-          "id": "vas_metal_overall",
-          "type": "slider",
-          "min": 1,
-          "max": 10,
-          "zoom": "far",
-          "label": "جذابیت کلی این لبخند را چگونه ارزیابی می‌کنید؟",
-          "left_label": "کاملاً نازیبا",
-          "right_label": "کاملاً زیبا"
-        },
-        {
-          "id": "vas_metal_distract",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "این دستگاه ارتودنسی تا چه حد جلب توجه می‌کند؟",
-          "left_label": "اصلاً",
-          "right_label": "بسیار زیاد"
-        },
-        {
-          "id": "vas_metal_prof",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "این لبخند برای یک محیط رسمی یا کاری چقدر مناسب به نظر می‌رسد؟",
-          "left_label": "کاملاً نامناسب",
-          "right_label": "بسیار مناسب"
-        },
-        {
-          "id": "acc_metal_work",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در محیط کار چقدر احساس خجالت می‌کردید؟",
-          "left_label": "اصلاً",
-          "right_label": "به‌شدت"
-        },
-        {
-          "id": "acc_metal_social",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "far",
-          "label": "اگر خودتان از این دستگاه استفاده می‌کردید، در مهمانی یا دورهمی دوستانه چقدر احساس راحتی می‌کردید؟",
-          "left_label": "اصلاً راحت نبودم",
-          "right_label": "کاملاً راحت بودم"
-        },
-        {
-          "id": "vas_metal_device_impact",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "near",
-          "label": "اجزای قابل مشاهده این دستگاه تا چه حد از جذابیت لبخند کاسته‌اند؟",
-          "left_label": "اصلاً",
-          "right_label": "کاملاً"
-        },
-        {
-          "id": "vas_metal_color_harmony",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "near",
-          "label": "هماهنگی رنگ دستگاه با دندان‌ها را چگونه ارزیابی می‌کنید؟",
-          "left_label": "کاملاً ناهماهنگ",
-          "right_label": "کاملاً هماهنگ"
-        },
-        {
-          "id": "psy_metal_intel",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد چقدر باهوش به نظر می‌رسد؟",
-          "left_label": "بسیار کم‌هوش",
-          "right_label": "بسیار باهوش"
-        },
-        {
-          "id": "psy_metal_hygiene",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "به نظر شما این فرد چقدر به بهداشت دهان و دندان خود اهمیت می‌دهد؟",
-          "left_label": "بسیار کم",
-          "right_label": "بسیار زیاد"
-        },
-        {
-          "id": "psy_metal_attract",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد از نظر ظاهری (صرفاً ناحیه دهان و لبخند) چقدر جذاب به نظر می‌رسد؟",
-          "left_label": "بسیار غیرجذاب",
-          "right_label": "بسیار جذاب"
-        },
-        {
-          "id": "psy_metal_trust",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد چقدر صادق و قابل اعتماد به نظر می‌رسد؟",
-          "left_label": "غیرقابل اعتماد",
-          "right_label": "بسیار قابل اعتماد"
-        },
-        {
-          "id": "psy_metal_social",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد از نظر اجتماعی چقدر موفق و محبوب به نظر می‌رسد؟",
-          "left_label": "بسیار کم",
-          "right_label": "بسیار زیاد"
-        },
-        {
-          "id": "psy_metal_ses",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "تصور می‌کنید این فرد از نظر اقتصادی در چه سطحی قرار دارد؟",
-          "left_label": "کم‌درآمد",
-          "right_label": "پردرآمد"
-        },
-        {
-          "id": "psy_metal_confidence",
-          "type": "slider",
-          "min": 1,
-          "max": 5,
-          "zoom": "closeup",
-          "label": "این فرد چقدر با اعتمادبه‌نفس به نظر می‌رسد؟",
-          "left_label": "بسیار کم",
-          "right_label": "بسیار زیاد"
-        }
-      ]
-    },
-    {
-      "intro": "در این بخش، هر سه دستگاه را با هم مقایسه کنید.",
-      "title": "بخش ۶: مقایسه نهایی",
-      "step_id": "functional_compare",
-      "questions": [
-        {
-          "id": "compare_aesthetic_best",
-          "type": "radio",
-          "label": "از نظر زیبایی، کدام دستگاه ارتودنسی را بهترین گزینه می‌دانید؟",
-          "options": [
-            { "val": "aligner", "text": "الاینر شفاف" },
-            { "val": "ceramic", "text": "براکت سرامیکی" },
-            { "val": "metal", "text": "براکت فلزی" }
-          ]
-        },
-        {
-          "id": "compare_aesthetic_worst",
-          "type": "radio",
-          "label": "از نظر زیبایی، کدام دستگاه ارتودنسی را بدترین گزینه می‌دانید؟",
-          "options": [
-            { "val": "aligner", "text": "الاینر شفاف" },
-            { "val": "ceramic", "text": "براکت سرامیکی" },
-            { "val": "metal", "text": "براکت فلزی" }
-          ]
-        },
-        {
-          "id": "compare_work",
-          "type": "radio",
-          "label": "کدام دستگاه را برای استفاده یک فرد بزرگسال در محیط کار مناسب‌تر می‌دانید؟",
-          "options": [
-            { "val": "aligner", "text": "الاینر شفاف" },
-            { "val": "ceramic", "text": "براکت سرامیکی" },
-            { "val": "metal", "text": "براکت فلزی" }
-          ]
-        },
-        {
-          "id": "compare_hygiene",
-          "type": "radio",
-          "label": "فکر می‌کنید رعایت بهداشت دهان و دندان با کدام دستگاه راحت‌تر است؟",
-          "options": [
-            { "val": "aligner", "text": "الاینر شفاف" },
-            { "val": "ceramic", "text": "براکت سرامیکی" },
-            { "val": "metal", "text": "براکت فلزی" }
-          ]
-        },
-        {
-          "id": "compare_comfort",
-          "type": "radio",
-          "label": "به نظر شما کدام دستگاه از نظر راحتی روزانه بهتر است؟",
-          "options": [
-            { "val": "aligner", "text": "الاینر شفاف" },
-            { "val": "ceramic", "text": "براکت سرامیکی" },
-            { "val": "metal", "text": "براکت فلزی" }
-          ]
-        },
-        {
-          "id": "compare_personal_choice",
-          "type": "radio",
-          "label": "اگر قرار بود خودتان درمان ارتودنسی انجام دهید، کدام دستگاه را انتخاب می‌کردید؟",
-          "options": [
-            { "val": "aligner", "text": "الاینر شفاف" },
-            { "val": "ceramic", "text": "براکت سرامیکی" },
-            { "val": "metal", "text": "براکت فلزی" }
-          ]
-        },
-        {
-          "id": "compare_cost_willing",
-          "type": "radio",
-          "label": "آیا حاضرید برای یک دستگاه زیباتر هزینه بیشتری بپردازید؟",
-          "options": [
-            { "val": "yes_much", "text": "بله، حتی هزینه بسیار بیشتر" },
-            { "val": "yes_some", "text": "بله، تا حدودی هزینه بیشتر" },
-            { "val": "no_diff", "text": "خیر، فقط ارزان‌ترین گزینه" },
-            { "val": "no_care", "text": "برایم فرقی ندارد" }
-          ]
-        },
-        {
-          "id": "compare_recommend",
-          "type": "radio",
-          "label": "کدام دستگاه را به یک دوست یا عضو خانواده بزرگسال توصیه می‌کنید؟",
-          "options": [
-            { "val": "aligner", "text": "الاینر شفاف" },
-            { "val": "ceramic", "text": "براکت سرامیکی" },
-            { "val": "metal", "text": "براکت فلزی" }
-          ]
-        }
-      ]
-    }
-  ]
+    ]
 }
