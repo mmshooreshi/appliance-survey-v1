@@ -563,7 +563,7 @@
             }).catch(err => console.error("Dentnet backend submission failed:", err));
 
             // --- 3. Secondary Backend ---
-            fetch("https://attendance.rlh.ir/appliance_survey/data", {
+            fetch("https://attendance.rlh.ir/appliance_survey/api/submit", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ responses: responses })
