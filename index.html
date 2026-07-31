@@ -545,30 +545,74 @@
                     return;
                 }
             }
-            changeStep(surveyData.steps.length);
 
-            // --- 1. ارسال امن به تابع Serverless Vercel ---
-            // این تابع توکن شما را پنهان نگه می‌دارد
-            fetch("/api/telegram", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ responses: responses })
-            }).catch(err => console.error("Vercel Telegram API failed:", err));
+            // مخفی کردن دکمه شناور گالری تصاویر در حین ارسال
+            const fab = document.getElementById('fab-photos');
+            if (fab) {
+                fab.classList.add('hidden');
+                fab.classList.remove('flex');
+            }
 
-            // --- 2. Primary Backend ---
-            fetch("https://engine.dentnet.space/api/appliance_survey/data", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ responses: responses })
-            }).catch(err => console.error("Dentnet backend submission failed:", err));
+            // ۱. نمایش صفحه لودینگ جایگزین سوالات (پیش از نمایش پیام موفقیت)
+            document.getElementById('survey-container').innerHTML = `
+                <div class="step active text-center py-10">
+                    <svg class="animate-spin h-14 w-14 text-primary mx-auto mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <h2 class="text-xl font-bold text-white mb-6">در حال پردازش اطلاعات</h2>
+                    
+                    <div class="space-y-3 max-w-[220px] mx-auto text-right">
+                        <div class="flex items-center text-sm font-medium text-secondary">
+                            <svg class="w-4 h-4 ml-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+                            ذخیره اولیه...
+                        </div>
+                        <div class="flex items-center text-sm text-textMuted">
+                            <svg class="w-4 h-4 ml-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+                            ارتباط با سرورهای اصلی...
+                        </div>
+                    </div>
+                </div>`;
+            document.getElementById('progress-bar').style.width = '95%';
 
-            // --- 3. Secondary Backend ---
-            fetch("https://attendance.rlh.ir/appliance_survey/api/submit", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ responses: responses })
-            }).catch(err => console.error("RLH backend submission failed:", err));
+            const payload = JSON.stringify({ responses: responses });
+            const headers = { "Content-Type": "application/json" };
+
+            // ۲. ساخت تابعی که درخواست را می‌فرستد و اگر سرور ارور داد، آن را Reject می‌کند
+            const sendRequest = async (url) => {
+                const res = await fetch(url, { method: "POST", headers, body: payload });
+                if (!res.ok) throw new Error(`Failed to reach ${url}`);
+                return res;
+            };
+
+            // تعریف 3 مسیر ارسال
+            const telegramReq = sendRequest("/api/telegram");
+            const backend1Req = sendRequest("https://engine.dentnet.space/api/appliance_survey/data");
+            const backend2Req = sendRequest("https://attendance.rlh.ir/appliance_survey/data");
+
+            try {
+                // ۳. استفاده از Promise.any (صبر می‌کند تا *فقط یکی* با موفقیت انجام شود)
+                await Promise.any([telegramReq, backend1Req, backend2Req]);
+                
+                // به محض اینکه تلگرام یا یکی از بک‌اندها موفق بود، پیام موفقیت نشان داده می‌شود
+                renderSuccess();
+
+            } catch (err) {
+                // ۴. اگر اینترنت قطع باشد و هر 3 درخواست به طور کامل Fail شوند
+                document.getElementById('survey-container').innerHTML = `
+                    <div class="step active text-center py-10">
+                        <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/50">
+                            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-white mb-4">خطا در ارتباط</h2>
+                        <p class="text-textMuted text-sm mb-8 leading-relaxed">متأسفانه ثبت اطلاعات موفقیت‌آمیز نبود. لطفاً اتصال اینترنت خود را بررسی کنید.</p>
+                        <button onclick="submitData()" class="w-full bg-slate-700 text-white font-bold py-3.5 rounded-xl active:bg-slate-600 transition-colors">تلاش مجدد</button>
+                    </div>`;
+            }
         }
+
         function renderSuccess() {
             document.getElementById('survey-container').innerHTML = `
                 <div class="step active text-center py-10">
