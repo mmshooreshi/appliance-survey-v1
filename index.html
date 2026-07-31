@@ -588,7 +588,7 @@
             // تعریف 3 مسیر ارسال
             const telegramReq = sendRequest("/api/telegram");
             const backend1Req = sendRequest("https://engine.dentnet.space/api/appliance_survey/data");
-            const backend2Req = sendRequest("https://attendance.rlh.ir/appliance_survey/data");
+            const backend2Req = sendRequest("https://attendance.rlh.ir/appliance_survey/api/submit");
 
             try {
                 // ۳. استفاده از Promise.any (صبر می‌کند تا *فقط یکی* با موفقیت انجام شود)
