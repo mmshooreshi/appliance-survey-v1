@@ -14,60 +14,74 @@ export default async function handler(req, res) {
     const chatIdsString = process.env.TELEGRAM_CHAT_IDS; 
     
     if (!botToken || !chatIdsString) {
+        console.error("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_IDS in environment variables.");
         return res.status(500).json({ error: 'Server configuration missing' });
     }
 
-    const chatIds = chatIdsString.split(',');
+    // پاکسازی فاصله‌های اضافی از دور آیدی‌ها
+    const chatIds = chatIdsString.split(',').map(id => id.trim()).filter(Boolean);
 
-    // ۱. استفاده از HTML به جای Markdown برای جلوگیری از کرش کردن تلگرام بخاطر کاراکترهای خاص (مثل _)
-    let messageText = "📋 <b>ثبت جدید پاسخ‌نامه</b>\n\n";
+    // ۱. ساخت متن پیام ساده (بدون فرمت‌های پیچیده که باعث خطای Markdown/HTML می‌شوند)
+    let messageText = "ثبت جدید پاسخ‌نامه:\n\n";
     for (const [key, value] of Object.entries(responses)) {
-        messageText += `• <b>${key}:</b> ${value}\n`;
+        messageText += `- ${key}: ${value}\n`;
     }
 
     // ۲. ساختاردهی اطلاعات به فرمت CSV
     const escapeCSV = (val) => `"${String(val).replace(/"/g, '""')}"`;
     const csvHeaders = Object.keys(responses).map(escapeCSV).join(',');
     const csvValues = Object.values(responses).map(escapeCSV).join(',');
-    
-    // کاراکتر \uFEFF (BOM) باعث می‌شود اکسل حروف فارسی را به درستی تشخیص دهد
     const csvString = '\uFEFF' + csvHeaders + '\n' + csvValues;
 
     try {
         const sendPromises = chatIds.map(async (chatId) => {
-            const trimmedChatId = chatId.trim();
+            try {
+                // الف) ارسال پیام متنی ساده (بدون parse_mode برای جلوگیری از هرگونه خطای کاراکتر خاص)
+                const textRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: messageText
+                    })
+                });
+                
+                const textResultData = await textRes.json();
+                if (!textResultData.ok) {
+                    console.error(`Telegram sendMessage error for ${chatId}:`, textResultData);
+                }
 
-            // الف) ارسال پیام متنی با فرمت HTML
-            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    chat_id: trimmedChatId,
-                    text: messageText,
-                    parse_mode: "HTML" // اصلاح شد
-                })
-            }).catch(err => console.error("Text msg error:", err)); // لاگ گرفتن ارور احتمالی بدون متوقف کردن فایل
+                // ب) ارسال فایل CSV
+                const formData = new FormData();
+                formData.append('chat_id', chatId);
+                formData.append('caption', '📁 فایل خروجی (CSV)');
+                
+                const csvBlob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                const fileName = `survey_result_${Date.now()}.csv`;
+                formData.append('document', csvBlob, fileName);
 
-            // ب) ارسال فایل CSV
-            const formData = new FormData();
-            formData.append('chat_id', trimmedChatId);
-            formData.append('caption', '📁 فایل خروجی (CSV)');
-            
-            const csvBlob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-            const fileName = `survey_result_${Date.now()}.csv`;
-            formData.append('document', csvBlob, fileName);
+                const docRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+                    method: "POST",
+                    body: formData
+                });
 
-            return fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-                method: "POST",
-                body: formData
-            });
+                const docResultData = await docRes.json();
+                if (!docResultData.ok) {
+                    console.error(`Telegram sendDocument error for ${chatId}:`, docResultData);
+                }
+
+                return true;
+            } catch (innerErr) {
+                console.error(`Failed for chatId ${chatId}:`, innerErr);
+                return false;
+            }
         });
 
         await Promise.all(sendPromises);
         return res.status(200).json({ success: true });
         
     } catch (error) {
-        console.error("Telegram Error:", error);
+        console.error("Telegram Global Error:", error);
         return res.status(500).json({ error: 'Failed to send telegram message' });
     }
 }
