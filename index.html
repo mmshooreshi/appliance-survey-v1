@@ -214,6 +214,31 @@
         </div>
     </div>
 
+    <!-- Resume Modal Prompt -->
+    <div id="resume-modal"
+        class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+        <div id="resume-modal-content"
+            class="bg-bgCard border border-slate-700/80 rounded-2xl p-6 text-center shadow-2xl max-w-sm w-full transform scale-95 transition-all duration-300">
+            <div class="w-14 h-14 bg-primary/20 text-primary rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/30">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">ادامه ارزیابی قبلی؟</h3>
+            <p class="text-textMuted text-sm mb-6 leading-relaxed">
+                شما یک ارزیابی ناتمام دارید. آیا مایلید از همان‌جایی که بودید ادامه دهید یا از نو شروع کنید؟
+            </p>
+            <div class="flex flex-col gap-3">
+                <button onclick="confirmResume()" class="w-full bg-primary text-white font-bold py-3.5 rounded-xl active:bg-primaryHover transition-all text-sm shadow-lg shadow-primary/20">
+                    ادامه ارزیابی
+                </button>
+                <button onclick="confirmRestart()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-3 rounded-xl border border-slate-700 active:scale-[0.98] transition-all text-sm">
+                    شروع مجدد از ابتدا
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div
         class="w-full max-w-md bg-bgCard rounded-[0.5rem] shadow-xl border border-slate-700/50 relative z-10 mt-4 sm:mt-0">
         <div class="h-1.5 w-full bg-slate-800 rounded-t-[0.5rem] overflow-hidden">
@@ -244,16 +269,88 @@
             ENABLE_OCCUPATION_QUESTION: false
         };
 
+        const STORAGE_RESPONSES = 'appliance_survey_responses';
+        const STORAGE_STEP = 'appliance_survey_step';
+        const STORAGE_ORDER = 'appliance_survey_steps_order';
+
         let surveyData = {};
         let currentStep = -1;
         let responses = {};
         let questionObserver = null;
 
+        function checkAndShowResumeModal() {
+            try {
+                const savedResponses = localStorage.getItem(STORAGE_RESPONSES);
+                const savedStep = localStorage.getItem(STORAGE_STEP);
+                if (savedResponses && savedStep !== null) {
+                    const parsedResp = JSON.parse(savedResponses);
+                    const stepNum = parseInt(savedStep, 10);
+                    if (Object.keys(parsedResp).length > 0 && stepNum >= 0 && stepNum < surveyData.steps.length) {
+                        showResumeModal();
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn('Error checking saved state:', e);
+            }
+            return false;
+        }
+
+        function showResumeModal() {
+            const modal = document.getElementById('resume-modal');
+            const content = document.getElementById('resume-modal-content');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                if (content) content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function hideResumeModal() {
+            const modal = document.getElementById('resume-modal');
+            const content = document.getElementById('resume-modal-content');
+            if (!modal) return;
+            modal.classList.add('opacity-0');
+            if (content) content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function confirmResume() {
+            try {
+                const savedResp = localStorage.getItem(STORAGE_RESPONSES);
+                const savedStep = localStorage.getItem(STORAGE_STEP);
+                if (savedResp) responses = JSON.parse(savedResp);
+                hideResumeModal();
+                const stepNum = savedStep !== null ? parseInt(savedStep, 10) : 0;
+                changeStep(stepNum);
+            } catch (e) {
+                console.error('Error resuming survey:', e);
+                confirmRestart();
+            }
+        }
+
+        function confirmRestart() {
+            clearSavedState();
+            responses = {};
+            hideResumeModal();
+            renderIntro();
+        }
+
+        function clearSavedState() {
+            try {
+                localStorage.removeItem(STORAGE_RESPONSES);
+                localStorage.removeItem(STORAGE_STEP);
+                localStorage.removeItem(STORAGE_ORDER);
+            } catch (e) {}
+        }
+
         function loadSurvey() {
             let currentLoadedPriority = Infinity;
             let pendingRequests = 3;
 
-            // تابع استاندارد برای بُر زدن (تصادفی‌سازی) یک آرایه
             const shuffleArray = (array) => {
                 for (let i = array.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -262,7 +359,6 @@
                 return array;
             };
 
-            // ۱. نمایش لودینگ (Spinner) پیش از دریافت اطلاعات
             document.getElementById('survey-container').innerHTML = `
                 <div class="flex flex-col items-center justify-center py-16">
                     <svg class="animate-spin h-10 w-10 text-primary mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -288,7 +384,6 @@
                     if (source.priority < currentLoadedPriority) {
                         currentLoadedPriority = source.priority;
                         
-                        // الف) فیلتر کردن «بخش ۶: مقایسه نهایی» در صورت غیرفعال بودن
                         if (!FEATURE_FLAGS.ENABLE_SECTION_6 && data.steps) {
                             data.steps = data.steps.filter(step => 
                                 step.step_id !== 'functional_compare' && 
@@ -296,7 +391,6 @@
                             );
                         }
 
-                        // ب) فیلتر کردن سوال «وضعیت شغلی» در صورت غیرفعال بودن
                         if (!FEATURE_FLAGS.ENABLE_OCCUPATION_QUESTION && data.steps) {
                             data.steps.forEach(step => {
                                 if (step.questions) {
@@ -305,33 +399,46 @@
                             });
                         }
 
-                        // ۴. تصادفی‌سازی بخش‌های ارزیابی سه دستگاه (ایندکس‌های ۲، ۳ و ۴)
+                        // ۴. تصادفی‌سازی یا بازیابی ترتیب سه دستگاه ارزیابی (ایندکس‌های ۲، ۳ و ۴)
                         if (data.steps && data.steps.length >= 5) {
-                            // ذخیره عنوان‌های اصلی به ترتیب (بخش ۳، بخش ۴، بخش ۵)
-                            const originalTitles = [
-                                data.steps[2].title,
-                                data.steps[3].title,
-                                data.steps[4].title
-                            ];
-
-                            // کپی گرفتن از آبجکت‌ها برای جلوگیری از تداخل دیتا
                             let stepsToRandomize = [
                                 { ...data.steps[2] },
                                 { ...data.steps[3] },
                                 { ...data.steps[4] }
                             ];
 
-                            // بُر زدن محتویات
-                            const shuffledSteps = shuffleArray(stepsToRandomize);
+                            let savedOrder = null;
+                            try {
+                                savedOrder = JSON.parse(localStorage.getItem(STORAGE_ORDER));
+                            } catch (e) {}
 
-                            // برگرداندن عنوان‌های ثابت به محتویات بُر خورده (در صورت فعال بودن عنوان‌ها)
+                            let shuffledSteps;
+                            if (savedOrder && Array.isArray(savedOrder) && savedOrder.length === 3) {
+                                const stepMap = {};
+                                stepsToRandomize.forEach(s => { stepMap[s.step_id] = s; });
+                                if (savedOrder.every(id => stepMap[id])) {
+                                    shuffledSteps = savedOrder.map(id => stepMap[id]);
+                                } else {
+                                    shuffledSteps = shuffleArray(stepsToRandomize);
+                                }
+                            } else {
+                                shuffledSteps = shuffleArray(stepsToRandomize);
+                                try {
+                                    localStorage.setItem(STORAGE_ORDER, JSON.stringify(shuffledSteps.map(s => s.step_id)));
+                                } catch (e) {}
+                            }
+
                             if (FEATURE_FLAGS.SHOW_SECTION_TITLES) {
+                                const originalTitles = [
+                                    data.steps[2].title,
+                                    data.steps[3].title,
+                                    data.steps[4].title
+                                ];
                                 shuffledSteps[0].title = originalTitles[0];
                                 shuffledSteps[1].title = originalTitles[1];
                                 shuffledSteps[2].title = originalTitles[2];
                             }
 
-                            // جایگذاری در دیتای اصلی
                             data.steps[2] = shuffledSteps[0];
                             data.steps[3] = shuffledSteps[1];
                             data.steps[4] = shuffledSteps[2];
@@ -339,6 +446,7 @@
 
                         surveyData = data;
                         renderIntro(); 
+                        checkAndShowResumeModal();
                     }
                 } catch (err) {
                     console.warn(`Failed to load config from ${source.url}:`, err);
@@ -425,7 +533,7 @@
 
             // ISOLATED INNER WRAPPER STRATEGY
             let imageHtml = step.image ? `
-            <div class="h-[260px] sticky top-2 sm:top-4 z-30 mb-8 relative rounded-2xl border border-slate-700 bg-slate-800 overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)]">
+            <div class="h-[260px] sticky top-2 sm:top-4 z-30 m-0 relative rounded-2xl border border-slate-700 bg-slate-800 overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] w-full max-w-full mx-auto">
                 <pinch-zoom disable-pan="true" animating="true">
                     <div class="image-container-wrapper">
                         <img id="auto-zoom-image" src="${step.image}" alt="Step Image" 
@@ -502,7 +610,12 @@
             img.style.transform = `scale(${scale}) translateY(${yOffset}%)`;
         }
         // --- Interactive Logic ---
-        function saveResponse(key, val) { responses[key] = val; }
+        function saveResponse(key, val) { 
+            responses[key] = val;
+            try {
+                localStorage.setItem(STORAGE_RESPONSES, JSON.stringify(responses));
+            } catch (e) {}
+        }
 
         function updateSliderBubble(slider, qId) {
             const val = Number(slider.value);
@@ -595,6 +708,12 @@
                 }
 
                 currentStep = targetIndex;
+                if (currentStep >= 0 && currentStep < surveyData.steps.length) {
+                    try {
+                        localStorage.setItem(STORAGE_STEP, currentStep);
+                        localStorage.setItem(STORAGE_RESPONSES, JSON.stringify(responses));
+                    } catch (e) {}
+                }
                 updateProgress();
 
                 const fab = document.getElementById('fab-photos');
@@ -692,6 +811,7 @@
         }
 
         function renderSuccess() {
+            clearSavedState();
             document.getElementById('survey-container').innerHTML = `
                 <div class="step active text-center py-10">
                     <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/20 flex items-center justify-center border border-primary/50">
