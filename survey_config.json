@@ -95,33 +95,6 @@
                     ]
                 },
                 {
-                    "id": "q_occupation",
-                    "type": "radio",
-                    "label": "وضعیت شغلی:",
-                    "options": [
-                        {
-                            "val": "student",
-                            "text": "دانشجو"
-                        },
-                        {
-                            "val": "employed",
-                            "text": "شاغل"
-                        },
-                        {
-                            "val": "self_employed",
-                            "text": "شغل آزاد"
-                        },
-                        {
-                            "val": "unemployed",
-                            "text": "بیکار / خانه‌دار"
-                        },
-                        {
-                            "val": "retired",
-                            "text": "بازنشسته"
-                        }
-                    ]
-                },
-                {
                     "id": "q_dentist_screen",
                     "type": "radio",
                     "label": "آیا در حال حاضر در رشته‌های مرتبط با دندان‌پزشکی تحصیل می‌کنید یا مشغول به کار هستید؟",

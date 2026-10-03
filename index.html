@@ -224,6 +224,23 @@
     </div>
 
     <script>
+        // =========================================================================
+        // SURGICAL FEATURE TOGGLES (برای فعال/غیرفعال کردن قابلیت‌ها در آینده)
+        // =========================================================================
+        const FEATURE_FLAGS = {
+            // ۱. اطلاعات تکمیلی جهت مقایسه (دکمه شناور تصاویر مرجع و متن راهنمای بخش‌ها)
+            ENABLE_COMPARISON_INFO: false,
+
+            // ۲. بخش ۶: مقایسه نهایی
+            ENABLE_SECTION_6: false,
+
+            // ۳. عناوین بالای بخش‌ها (مانند «بخش ۳: ارزیابی الاینر شفاف»)
+            SHOW_SECTION_TITLES: false,
+
+            // ۴. سوال مربوط به وضعیت شغلی در بخش اطلاعات فردی
+            ENABLE_OCCUPATION_QUESTION: false
+        };
+
         let surveyData = {};
         let currentStep = -1;
         let responses = {};
@@ -268,7 +285,24 @@
                     if (source.priority < currentLoadedPriority) {
                         currentLoadedPriority = source.priority;
                         
-                        // ۴. تصادفی‌سازی بخش‌های ۳، ۴ و ۵ (ایندکس‌های ۲، ۳ و ۴ آرایه)
+                        // الف) فیلتر کردن «بخش ۶: مقایسه نهایی» در صورت غیرفعال بودن
+                        if (!FEATURE_FLAGS.ENABLE_SECTION_6 && data.steps) {
+                            data.steps = data.steps.filter(step => 
+                                step.step_id !== 'functional_compare' && 
+                                !step.title?.includes('مقایسه نهایی')
+                            );
+                        }
+
+                        // ب) فیلتر کردن سوال «وضعیت شغلی» در صورت غیرفعال بودن
+                        if (!FEATURE_FLAGS.ENABLE_OCCUPATION_QUESTION && data.steps) {
+                            data.steps.forEach(step => {
+                                if (step.questions) {
+                                    step.questions = step.questions.filter(q => q.id !== 'q_occupation');
+                                }
+                            });
+                        }
+
+                        // ۴. تصادفی‌سازی بخش‌های ارزیابی سه دستگاه (ایندکس‌های ۲، ۳ و ۴)
                         if (data.steps && data.steps.length >= 5) {
                             // ذخیره عنوان‌های اصلی به ترتیب (بخش ۳، بخش ۴، بخش ۵)
                             const originalTitles = [
@@ -287,10 +321,12 @@
                             // بُر زدن محتویات
                             const shuffledSteps = shuffleArray(stepsToRandomize);
 
-                            // برگرداندن عنوان‌های ثابت به محتویات بُر خورده
-                            shuffledSteps[0].title = originalTitles[0];
-                            shuffledSteps[1].title = originalTitles[1];
-                            shuffledSteps[2].title = originalTitles[2];
+                            // برگرداندن عنوان‌های ثابت به محتویات بُر خورده (در صورت فعال بودن عنوان‌ها)
+                            if (FEATURE_FLAGS.SHOW_SECTION_TITLES) {
+                                shuffledSteps[0].title = originalTitles[0];
+                                shuffledSteps[1].title = originalTitles[1];
+                                shuffledSteps[2].title = originalTitles[2];
+                            }
 
                             // جایگذاری در دیتای اصلی
                             data.steps[2] = shuffledSteps[0];
@@ -405,14 +441,18 @@
                 }
                 </div>`;
 
-            let stepIntroHtml = step.intro ? `<p class="text-textMuted text-sm mb-6 leading-relaxed bg-slate-800/80 p-4 rounded-xl border border-slate-700">${step.intro}</p>` : '';
+            let stepIntroHtml = (FEATURE_FLAGS.ENABLE_COMPARISON_INFO && step.intro) ? `<p class="text-textMuted text-sm mb-6 leading-relaxed bg-slate-800/80 p-4 rounded-xl border border-slate-700">${step.intro}</p>` : '';
+
+            let titleHtml = (FEATURE_FLAGS.SHOW_SECTION_TITLES && step.title) ? `
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-white">${step.title}</h3>
+                </div>` : '';
 
             return `
                 <div id="step-content-${stepIndex}" class="step active">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-bold text-white">${step.title}</h3>
-                    </div>
+                    ${titleHtml}
                     ${imageHtml}
+                    ${stepIntroHtml}
                     <div class="space-y-4 pt-2">${renderQuestions(step.questions)}</div>
                     ${btnHtml}
                 </div>`;
@@ -555,7 +595,7 @@
                 updateProgress();
 
                 const fab = document.getElementById('fab-photos');
-                if (currentStep > 1 && currentStep < surveyData.steps.length) {
+                if (FEATURE_FLAGS.ENABLE_COMPARISON_INFO && currentStep > 1 && currentStep < surveyData.steps.length) {
                     fab.classList.remove('hidden');
                     fab.classList.add('flex');
                 } else {
