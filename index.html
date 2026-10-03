@@ -782,14 +782,15 @@
                 return res;
             };
 
-            // تعریف 3 مسیر ارسال
+            // تعریف مسیرهای ارسال (تلگرام، بله و بک‌اندها)
             const telegramReq = sendRequest("/api/telegram");
+            const baleReq = sendRequest("/api/bale");
             const backend1Req = sendRequest("https://engine.dentnet.space/api/appliance_survey/data");
             const backend2Req = sendRequest("https://attendance.rlh.ir/appliance_survey/api/submit");
 
             try {
                 // ۳. استفاده از Promise.any (صبر می‌کند تا *فقط یکی* با موفقیت انجام شود)
-                await Promise.any([telegramReq, backend1Req, backend2Req]);
+                await Promise.any([telegramReq, baleReq, backend1Req, backend2Req]);
                 
                 // به محض اینکه تلگرام یا یکی از بک‌اندها موفق بود، پیام موفقیت نشان داده می‌شود
                 renderSuccess();
