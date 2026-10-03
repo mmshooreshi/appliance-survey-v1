@@ -228,16 +228,19 @@
         // SURGICAL FEATURE TOGGLES (برای فعال/غیرفعال کردن قابلیت‌ها در آینده)
         // =========================================================================
         const FEATURE_FLAGS = {
-            // ۱. اطلاعات تکمیلی جهت مقایسه (دکمه شناور تصاویر مرجع و متن راهنمای بخش‌ها)
-            ENABLE_COMPARISON_INFO: false,
+            // دکمه شناور مشاهده تصاویر مرجع (عکس‌های مقایسه‌ای)
+            ENABLE_PHOTOS_BUTTON: true,
 
-            // ۲. بخش ۶: مقایسه نهایی
+            // متن راهنما/توضیحات تکمیلی بالای هر بخش
+            ENABLE_STEP_INTRO_TEXT: false,
+
+            // بخش ۶: مقایسه نهایی
             ENABLE_SECTION_6: false,
 
-            // ۳. عناوین بالای بخش‌ها (مانند «بخش ۳: ارزیابی الاینر شفاف»)
+            // عناوین بالای بخش‌ها (مانند «بخش ۳: ارزیابی الاینر شفاف»)
             SHOW_SECTION_TITLES: false,
 
-            // ۴. سوال مربوط به وضعیت شغلی در بخش اطلاعات فردی
+            // سوال مربوط به وضعیت شغلی در بخش اطلاعات فردی
             ENABLE_OCCUPATION_QUESTION: false
         };
 
@@ -441,7 +444,7 @@
                 }
                 </div>`;
 
-            let stepIntroHtml = (FEATURE_FLAGS.ENABLE_COMPARISON_INFO && step.intro) ? `<p class="text-textMuted text-sm mb-6 leading-relaxed bg-slate-800/80 p-4 rounded-xl border border-slate-700">${step.intro}</p>` : '';
+            let stepIntroHtml = (FEATURE_FLAGS.ENABLE_STEP_INTRO_TEXT && step.intro) ? `<p class="text-textMuted text-sm mb-6 leading-relaxed bg-slate-800/80 p-4 rounded-xl border border-slate-700">${step.intro}</p>` : '';
 
             let titleHtml = (FEATURE_FLAGS.SHOW_SECTION_TITLES && step.title) ? `
                 <div class="flex items-center justify-between mb-6">
@@ -595,7 +598,7 @@
                 updateProgress();
 
                 const fab = document.getElementById('fab-photos');
-                if (FEATURE_FLAGS.ENABLE_COMPARISON_INFO && currentStep > 1 && currentStep < surveyData.steps.length) {
+                if (FEATURE_FLAGS.ENABLE_PHOTOS_BUTTON && currentStep > 1 && currentStep < surveyData.steps.length) {
                     fab.classList.remove('hidden');
                     fab.classList.add('flex');
                 } else {
