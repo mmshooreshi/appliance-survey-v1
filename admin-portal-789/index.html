@@ -99,17 +99,55 @@
                 console.log("فایل survey_config.json یافت نشد. مقادیر خام نمایش داده می‌شوند.");
             }
 
-            // ۲. دریافت اطلاعات ثبت‌شده از دیتابیس
-            const res = await fetch('https://engine.dentnet.space/api/appliance_survey/data');
-            let rawData = await res.json();
+            // ۲. دریافت اطلاعات ثبت‌شده از دیتابیس (با فال‌بک خودکار)
+            let rawData = [];
+            const endpoints = [
+                'https://engine.dentnet.space/api/appliance_survey/data',
+                'http://91.212.174.223:9090/api/data'
+            ];
+            for (const ep of endpoints) {
+                try {
+                    const res = await fetch(ep);
+                    if (res.ok) {
+                        const parsed = await res.json();
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            rawData = parsed;
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Could not reach ${ep}:`, e);
+                }
+            }
+
+            // تابع تشخیص ترتیب برای رکوردهای گذشته و آینده
+            const detectOrder = (row) => {
+                if (row.appliance_order) return row.appliance_order;
+                const keys = Object.keys(row);
+                const order = [];
+                const seen = new Set();
+                for (const k of keys) {
+                    for (const app of ['aligner', 'ceramic', 'metal']) {
+                        if (k.includes(app) && !seen.has(app)) {
+                            order.push(app);
+                            seen.add(app);
+                        }
+                    }
+                }
+                return order.join(' > ');
+            };
 
             // FLATTEN THE DATA: Convert {id, timestamp, responses: {...}} to {id, timestamp, ...responses}
             globalData = rawData.map(item => {
-                return {
+                const flat = {
                     id: item.id,
                     timestamp: item.timestamp,
-                    ...item.responses // Spread the responses into the top level
+                    ...(item.responses ? item.responses : item)
                 };
+                if (!flat.appliance_order) {
+                    flat.appliance_order = detectOrder(flat);
+                }
+                return flat;
             });
 
             if (globalData.length === 0) return;
