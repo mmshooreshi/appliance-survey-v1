@@ -45,23 +45,55 @@
 
     <!-- کانتینر اصلی جدول -->
     <div class="max-w-[95%] mx-auto bg-white rounded-2xl shadow-lg p-6 relative z-10">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">نتایج پژوهش (داینامیک)</h1>
-            <div class="flex gap-2">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">نتایج پژوهش (داینامیک)</h1>
+                <p id="filterStatsText" class="text-xs text-gray-500 mt-1 font-medium">در حال بارگذاری اطلاعات...</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
                 <button onclick="openConfigEditor()"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors">ویرایش
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors shadow-sm">ویرایش
                     پرسشنامه</button>
                 <button onclick="exportToCSV()"
-                    class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors">
-                    خروجی CSV
+                    class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition-colors shadow-sm flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>خروجی CSV فیلترشده</span>
                 </button>
-
             </div>
         </div>
 
-<div class="overflow-x-auto shadow-sm rounded-lg border border-gray-200">
-    <table class="w-full text-right border-collapse table-auto whitespace-nowrap">
-        <!-- whitespace-nowrap -->
+        <!-- فیلتر پیشرفته بازه زمانی -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    بازه زمانی و حذف داده‌های آزمایشی:
+                </span>
+                <div class="flex flex-wrap gap-1.5 text-xs">
+                    <button type="button" onclick="setPreset('study')" id="btn-preset-study" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold transition">🎯 داده‌های اصلی (از ۲۲ اکتبر)</button>
+                    <button type="button" onclick="setPreset('today')" id="btn-preset-today" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition">⚡ امروز</button>
+                    <button type="button" onclick="setPreset('3days')" id="btn-preset-3days" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition">🕒 ۳ روز اخیر</button>
+                    <button type="button" onclick="setPreset('7days')" id="btn-preset-7days" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition">🗓 ۷ روز اخیر</button>
+                    <button type="button" onclick="setPreset('all')" id="btn-preset-all" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition">🌐 کل داده‌ها (با پایلوت)</button>
+                </div>
+            </div>
+
+            <!-- انتخاب دستی و دلخواه تاریخ با فرمت کامپیوتر یا موبایل -->
+            <div class="flex flex-wrap items-center gap-4 text-xs pt-1">
+                <div class="flex items-center gap-2">
+                    <label for="startDateInput" class="text-slate-600 font-medium">از تاریخ:</label>
+                    <input type="date" id="startDateInput" value="2026-10-22" onchange="onCustomDateChange()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="endDateInput" class="text-slate-600 font-medium">تا تاریخ:</label>
+                    <input type="date" id="endDateInput" onchange="onCustomDateChange()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                </div>
+                <button type="button" onclick="resetFilter()" class="text-slate-500 hover:text-red-500 transition underline mr-auto">بازنشانی به داده‌های رسمی</button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto shadow-sm rounded-lg border border-gray-200">
+            <table class="w-full text-right border-collapse table-auto whitespace-nowrap">
                 <thead id="tableHead" class="bg-gray-50 border-b text-gray-500 font-bold uppercase tracking-wider">
                 </thead>
                 <tbody id="tableBody" class="text-sm text-gray-700">
@@ -150,24 +182,121 @@
                 return flat;
             });
 
-            if (globalData.length === 0) return;
+            allRecords = [...globalData];
+            // اعمال پیش‌فرض: فیلتر داده‌های رسمی پایان‌نامه (از ۲۲ اکتبر به بعد)
+            setPreset('study');
+        }
+
+        let allRecords = [];
+        let filteredData = [];
+
+        function setPreset(preset) {
+            const today = new Date();
+            const formatDate = (d) => d.toISOString().split('T')[0];
+
+            // ریست استایل دکمه‌ها
+            ['study', 'today', '3days', '7days', 'all'].forEach(p => {
+                const btn = document.getElementById(`btn-preset-${p}`);
+                if (btn) {
+                    if (p === preset) {
+                        btn.className = "px-3 py-1.5 rounded-lg bg-blue-600 text-white font-bold transition shadow-sm";
+                    } else {
+                        btn.className = "px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition";
+                    }
+                }
+            });
+
+            const startInput = document.getElementById('startDateInput');
+            const endInput = document.getElementById('endDateInput');
+
+            if (preset === 'study') {
+                startInput.value = '2026-10-22';
+                endInput.value = '';
+            } else if (preset === 'today') {
+                startInput.value = formatDate(today);
+                endInput.value = formatDate(today);
+            } else if (preset === '3days') {
+                const d = new Date();
+                d.setDate(today.getDate() - 3);
+                startInput.value = formatDate(d);
+                endInput.value = formatDate(today);
+            } else if (preset === '7days') {
+                const d = new Date();
+                d.setDate(today.getDate() - 7);
+                startInput.value = formatDate(d);
+                endInput.value = formatDate(today);
+            } else if (preset === 'all') {
+                startInput.value = '';
+                endInput.value = '';
+            }
+
+            applyFilter();
+        }
+
+        function onCustomDateChange() {
+            // غیرفعال کردن رنگ دکمه‌های پیش‌فرض وقتی کاربر تاریخ دستی وارد می‌کند
+            ['study', 'today', '3days', '7days', 'all'].forEach(p => {
+                const btn = document.getElementById(`btn-preset-${p}`);
+                if (btn) btn.className = "px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition";
+            });
+            applyFilter();
+        }
+
+        function resetFilter() {
+            setPreset('study');
+        }
+
+        function applyFilter() {
+            const startVal = document.getElementById('startDateInput').value;
+            const endVal = document.getElementById('endDateInput').value;
+
+            filteredData = allRecords.filter(row => {
+                if (!row.timestamp) return true;
+                const rowDate = row.timestamp.split(' ')[0]; // YYYY-MM-DD
+                if (startVal && rowDate < startVal) return false;
+                if (endVal && rowDate > endVal) return false;
+                return true;
+            });
+
+            // به‌روزرسانی متن وضعیت
+            const totalCount = allRecords.length;
+            const shownCount = filteredData.length;
+            const hiddenCount = totalCount - shownCount;
+            let statusText = `نمایش ${shownCount} پاسخ‌نامه از مجموع ${totalCount} رکورد ثبت‌شده`;
+            if (hiddenCount > 0) {
+                statusText += ` (${hiddenCount} رکورد فیلتر شدند)`;
+            }
+            if (startVal === '2026-10-22' && !endVal) {
+                statusText += ` — ✅ فقط داده‌های اصلی پژوهش (حذف پایلوت‌های قبل از ۲۲ اکتبر)`;
+            }
+            const statsElem = document.getElementById('filterStatsText');
+            if (statsElem) statsElem.innerText = statusText;
+
+            renderTable(filteredData);
+        }
+
+        function renderTable(dataToRender) {
+            if (!dataToRender || dataToRender.length === 0) {
+                document.getElementById('tableHead').innerHTML = `<tr><th class="p-4 text-center">هیچ رکوردی در این بازه تاریخی یافت نشد</th></tr>`;
+                document.getElementById('tableBody').innerHTML = '';
+                return;
+            }
 
             // استخراج تمام کلیدهای داینامیک
-            let allKeys = new Set(["id", "timestamp"]);
-            globalData.forEach(row => {
+            let allKeys = new Set(["id", "timestamp", "appliance_order"]);
+            dataToRender.forEach(row => {
                 Object.keys(row).forEach(k => allKeys.add(k));
             });
-            // const keysArray = Array.from(allKeys);
-            const keysArray = ["id", "timestamp", ...Array.from(allKeys).filter(k => k !== 'id' && k !== 'timestamp')];
+            const keysArray = ["id", "timestamp", "appliance_order", ...Array.from(allKeys).filter(k => k !== 'id' && k !== 'timestamp' && k !== 'appliance_order')];
 
-            // ساخت هدر جدول (با اضافه شدن ستون عملیات)
+            // ساخت هدر جدول
             document.getElementById('tableHead').innerHTML = `<tr>` +
                 `<th class="p-1 border-l text-center text-[10px]">عملیات</th>` +
                 keysArray.map(k => `<th dir="ltr" class="text-center p-1 border-l border-gray-200 truncate max-w-[100px] text-[7px]">${k}</th>`).join('') +
                 `</tr>`;
 
             // ساخت ردیف‌های جدول
-            document.getElementById('tableBody').innerHTML = globalData.map((row, index) => `
+            document.getElementById('tableBody').innerHTML = dataToRender.map((row, index) => `
                 <tr class="border-b hover:bg-gray-50">
                     <td class="p-3 border-l text-center">
                         <button onclick="showDetails(${index})" class="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm">مشاهده فرم</button>
@@ -179,7 +308,8 @@
 
         // تابع نمایش جزئیات در پاپ‌آپ
         function showDetails(index) {
-            const row = globalData[index];
+            const row = filteredData[index] || allRecords[index];
+            if (!row) return;
             let html = `
                 <div class="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-gray-200">
                     <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
@@ -231,21 +361,23 @@
 
         loadData();
 
-
         function exportToCSV() {
-            if (globalData.length === 0) return;
+            const dataToExport = (filteredData && filteredData.length > 0) ? filteredData : allRecords;
+            if (dataToExport.length === 0) {
+                alert('هیچ داده‌ای برای خروجی در این بازه وجود ندارد.');
+                return;
+            }
 
             // 1. Get all unique headers from all rows
-            const headers = Array.from(new Set(globalData.flatMap(row => Object.keys(row))));
+            const headers = Array.from(new Set(dataToExport.flatMap(row => Object.keys(row))));
 
             // 2. Create CSV content
             const csvRows = [];
-            csvRows.push(headers.join(',')); // Add headers row
+            csvRows.push('\uFEFF' + headers.join(',')); // Add UTF-8 BOM + headers row
 
-            for (const row of globalData) {
+            for (const row of dataToExport) {
                 const values = headers.map(header => {
                     const val = row[header] === undefined ? '' : row[header];
-                    // Escape quotes and wrap in quotes to handle commas within values
                     return `"${String(val).replace(/"/g, '""')}"`;
                 });
                 csvRows.push(values.join(','));
@@ -255,12 +387,16 @@
             const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
+            const startVal = document.getElementById('startDateInput')?.value || 'start';
+            const endVal = document.getElementById('endDateInput')?.value || 'now';
             link.setAttribute("href", url);
-            link.setAttribute("download", "survey_results.csv");
+            link.setAttribute("download", `appliance_survey_filtered_${startVal}_to_${endVal}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
+
+
         // ==========================================
         // Editor Logic (Mobile First, Tree View)
         // ==========================================

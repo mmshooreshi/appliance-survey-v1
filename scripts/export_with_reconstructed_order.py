@@ -7,14 +7,15 @@
 # ///
 """
 Appliance Survey - Historic Order Recovery & Thesis Dataset Exporter
-Recovers the appliance presentation order for all past records and exports
-a comprehensive Excel (.xlsx) and CSV dataset with order bias statistics.
+Recovers the appliance presentation order for all records, supports custom date ranges,
+and separates the official research study cohort (from 2026-10-22) from older pilot tests.
 """
 
 import os
 import sys
 import json
 import csv
+import argparse
 import urllib.request
 from datetime import datetime
 from collections import Counter, defaultdict
@@ -30,6 +31,8 @@ BACKEND_URLS = [
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "exports")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+DEFAULT_STUDY_START = "2026-10-22"
+
 APPLIANCE_EN_TO_FA = {
     "aligner": "الاینر شفاف",
     "ceramic": "براکت سرامیکی",
@@ -44,7 +47,7 @@ def fetch_data():
             with urllib.request.urlopen(req, timeout=10) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 if isinstance(data, list) and len(data) > 0:
-                    print(f"Successfully loaded {len(data)} records from {url}")
+                    print(f"Successfully loaded {len(data)} total records from {url}")
                     return data
         except Exception as e:
             print(f"Failed to fetch from {url}: {e}")
@@ -75,7 +78,7 @@ def detect_appliance_order(row):
                 seen.add(app)
     return detected
 
-def build_dataset(raw_data):
+def build_dataset(raw_data, start_date=None, end_date=None):
     processed_records = []
     
     demographic_keys = [
@@ -91,6 +94,15 @@ def build_dataset(raw_data):
         if "timestamp" in item and "timestamp" not in row:
             row["timestamp"] = item["timestamp"]
 
+        ts = row.get("timestamp", "")
+        row_date = ts.split(" ")[0] if ts else ""
+
+        # Date filtering
+        if start_date and row_date and row_date < start_date:
+            continue
+        if end_date and row_date and row_date > end_date:
+            continue
+
         order = detect_appliance_order(row)
         order_str_en = " > ".join(order) if order else "Unknown"
         order_str_fa = " > ".join([APPLIANCE_EN_TO_FA.get(a, a) for a in order]) if order else "نامشخص"
@@ -98,6 +110,7 @@ def build_dataset(raw_data):
         record = {
             "id": row.get("id", ""),
             "timestamp": row.get("timestamp", ""),
+            "cohort_group": "Official Study" if (row_date >= DEFAULT_STUDY_START) else "Pilot Test (Pre-Oct 22)",
             "appliance_order": order_str_en,
             "appliance_order_fa": order_str_fa,
             "first_appliance": order[0] if len(order) > 0 else "",
@@ -118,8 +131,9 @@ def build_dataset(raw_data):
 
     return processed_records
 
-def export_csv(records, filename):
+def export_csv(records, filepath):
     if not records:
+        print(f"No records to write for {filepath}")
         return
     fieldnames = []
     for r in records:
@@ -127,14 +141,13 @@ def export_csv(records, filename):
             if k not in fieldnames:
                 fieldnames.append(k)
 
-    filepath = os.path.join(OUTPUT_DIR, filename)
     with open(filepath, "w", encoding="utf-8-sig", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(records)
-    print(f"Exported CSV: {filepath}")
+    print(f"Exported CSV ({len(records)} records): {filepath}")
 
-def export_excel(records, filename):
+def export_excel(records, filepath, title="Study Cohort Responses"):
     wb = Workbook()
     
     # Styles
@@ -149,9 +162,9 @@ def export_excel(records, filename):
         bottom=Side(style='thin', color='D9D9D9')
     )
 
-    # Sheet 1: Master Responses
+    # Sheet 1: Data Responses
     ws1 = wb.active
-    ws1.title = "Master Responses"
+    ws1.title = "Responses"
     ws1.views.sheetView[0].showGridLines = True
 
     fieldnames = []
@@ -197,7 +210,7 @@ def export_excel(records, filename):
         cell.alignment = Alignment(horizontal="center")
 
     for o_idx, (seq, count) in enumerate(orders_count.most_common(), start=4):
-        pct = (count / total_records) * 100
+        pct = (count / total_records) * 100 if total_records > 0 else 0
         fa_trans = " > ".join([APPLIANCE_EN_TO_FA.get(x.strip(), x.strip()) for x in seq.split(">")])
         ws2.append([seq, fa_trans, count, f"{pct:.1f}%"])
         for c_idx in range(1, 5):
@@ -205,7 +218,7 @@ def export_excel(records, filename):
             c.border = border_thin
             c.alignment = Alignment(horizontal="center")
 
-    # Add Position Cross-Tab (Appliance vs Seen Position)
+    # Position Cross-Tab
     next_row = ws2.max_row + 3
     ws2.cell(row=next_row, column=1, value="Appliance Attractiveness (VAS Overall) by Presentation Position (Order Effect Check)").font = Font(size=12, bold=True, color="1F4E79")
     next_row += 1
@@ -253,26 +266,48 @@ def export_excel(records, filename):
             col_letter = get_column_letter(col[0].column)
             sheet.column_dimensions[col_letter].width = min(max(max_len + 3, 12), 40)
 
-    filepath = os.path.join(OUTPUT_DIR, filename)
     wb.save(filepath)
-    print(f"Exported Excel Workbook: {filepath}")
+    print(f"Exported Excel ({len(records)} records): {filepath}")
 
 def main():
+    parser = argparse.ArgumentParser(description="Export appliance survey data with reconstructed order.")
+    parser.add_argument("--start-date", default=DEFAULT_STUDY_START, help=f"Filter start date (default: {DEFAULT_STUDY_START})")
+    parser.add_argument("--end-date", default=None, help="Filter end date (e.g. 2026-10-30)")
+    parser.add_argument("--all", action="store_true", help="Include all records (including pre-Oct 22 pilot tests)")
+    args = parser.parse_args()
+
     raw_data = fetch_data()
-    records = build_dataset(raw_data)
-    
-    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    csv_file = f"appliance_survey_full_{timestamp_str}.csv"
-    xlsx_file = f"appliance_survey_thesis_dataset_{timestamp_str}.xlsx"
-    
-    export_csv(records, csv_file)
-    export_excel(records, xlsx_file)
 
-    export_csv(records, "appliance_survey_latest.csv")
-    export_excel(records, "appliance_survey_thesis_latest.xlsx")
+    if args.all:
+        start_date = None
+        end_date = None
+        prefix = "all_records"
+    else:
+        start_date = args.start_date
+        end_date = args.end_date
+        prefix = f"study_from_{start_date}"
 
-    print("\nDataset generation completed successfully!")
-    print(f"Total processed records: {len(records)}")
+    study_records = build_dataset(raw_data, start_date=start_date, end_date=end_date)
+    all_records = build_dataset(raw_data, start_date=None, end_date=None)
+
+    # 1. Export the official study dataset (default: from 2026-10-22 onwards)
+    csv_study = os.path.join(OUTPUT_DIR, "appliance_survey_study_cohort_latest.csv")
+    xlsx_study = os.path.join(OUTPUT_DIR, "appliance_survey_study_cohort_latest.xlsx")
+    export_csv(study_records, csv_study)
+    export_excel(study_records, xlsx_study, title="Study Cohort (Oct 22+)")
+
+    # 2. Export the master archival dataset (all records)
+    csv_all = os.path.join(OUTPUT_DIR, "appliance_survey_all_raw_latest.csv")
+    xlsx_all = os.path.join(OUTPUT_DIR, "appliance_survey_all_raw_latest.xlsx")
+    export_csv(all_records, csv_all)
+    export_excel(all_records, xlsx_all, title="All Raw Records")
+
+    print("\n" + "="*60)
+    print("SUMMARY:")
+    print(f"Total raw records in database: {len(all_records)}")
+    print(f"Official Study Cohort (from {DEFAULT_STUDY_START}): {len(study_records)} records")
+    print(f"Pilot / Test records (before {DEFAULT_STUDY_START}): {len(all_records) - len(study_records)} records (filtered out)")
+    print("="*60)
 
 if __name__ == "__main__":
     main()

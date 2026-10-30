@@ -2,6 +2,7 @@
 // Handles both survey submission notifications and interactive Telegram Bot commands
 
 const BACKEND_URL = "http://91.212.174.223:9090/api/data";
+const DEFAULT_STUDY_START = "2026-10-22";
 
 const APPLIANCE_FA_MAP = {
     aligner: "الاینر شفاف",
@@ -57,9 +58,31 @@ async function fetchBackendData() {
     }
 }
 
-// Filter dataset by date preset
-function filterByDatePreset(data, preset) {
+// Filter dataset by date preset or custom range
+function filterByDatePreset(data, preset, customStart = null, customEnd = null) {
     if (!preset || preset === 'all') return data;
+
+    if (preset === 'study') {
+        return data.filter(r => (r.timestamp || '') >= `${DEFAULT_STUDY_START} 00:00:00`);
+    }
+
+    if (preset === 'custom' || preset.startsWith('custom_')) {
+        let start = customStart;
+        let end = customEnd;
+        if (preset.startsWith('custom_')) {
+            const parts = preset.replace('custom_', '').split('_to_');
+            start = parts[0] || null;
+            end = parts[1] || null;
+        }
+        return data.filter(r => {
+            if (!r.timestamp) return true;
+            const rowDate = r.timestamp.split(' ')[0];
+            if (start && rowDate < start) return false;
+            if (end && rowDate > end) return false;
+            return true;
+        });
+    }
+
     const now = new Date();
     let cutoff = new Date();
 
@@ -96,7 +119,6 @@ function generateCSV(rows, fieldFilter = 'all') {
     if (!rows || rows.length === 0) return '\uFEFFNo data';
     
     let allKeys = new Set();
-    // Prioritize key columns
     const priority = ['id', 'timestamp', 'appliance_order', 'appliance_order_fa', 'first_appliance', 'second_appliance', 'third_appliance', 'q_age', 'q_gender', 'q_edu'];
     priority.forEach(k => allKeys.add(k));
 
@@ -232,9 +254,25 @@ export default async function handler(req, res) {
         if (data === 'menu_main') {
             await showMainMenu(botToken, senderChatId);
         } else if (data === 'menu_stats') {
-            await showStats(botToken, senderChatId);
+            await showStats(botToken, senderChatId, 'study');
+        } else if (data === 'menu_stats_all') {
+            await showStats(botToken, senderChatId, 'all');
         } else if (data === 'menu_daterange') {
             await showDateRangeMenu(botToken, senderChatId);
+        } else if (data === 'prompt_custom_date') {
+            await sendTelegramMsg(
+                botToken,
+                senderChatId,
+                "✍️ *تعیین بازه تاریخی دلخواه*\n\n" +
+                "لطفاً تاریخ شروع و پایان را به این شکل در چت ارسال کنید:\n" +
+                "`2026-10-22 to 2026-10-30`\n" +
+                "یا:\n" +
+                "`2026-10-25 2026-10-28`\n\n" +
+                "یا از دستور زیر استفاده کنید:\n" +
+                "`/range 2026-10-22 2026-10-30`",
+                null,
+                "Markdown"
+            );
         } else if (data.startsWith('filter_date_')) {
             const preset = data.replace('filter_date_', '');
             await showDateSelectedMenu(botToken, senderChatId, preset);
@@ -248,9 +286,9 @@ export default async function handler(req, res) {
             const preset = data.replace('export_vas_', '');
             await sendExportCSV(botToken, senderChatId, preset, 'vas');
         } else if (data === 'menu_thesis_metrics') {
-            await showThesisComparison(botToken, senderChatId);
+            await showThesisComparison(botToken, senderChatId, 'study');
         } else if (data === 'menu_order_bias') {
-            await showOrderBiasAnalysis(botToken, senderChatId);
+            await showOrderBiasAnalysis(botToken, senderChatId, 'study');
         }
 
         return res.status(200).json({ ok: true });
@@ -259,16 +297,28 @@ export default async function handler(req, res) {
     // Handle Text Commands
     if (message && message.text) {
         const text = message.text.trim();
+
+        // Check for custom date range input: e.g. "2026-10-22 to 2026-10-30" or "/range 2026-10-22 2026-10-30"
+        const dateRangeRegex = /(?:^\/range\s+)?(\d{4}-\d{2}-\d{2})\s*(?:to|-|\s)\s*(\d{4}-\d{2}-\d{2})/i;
+        const match = text.match(dateRangeRegex);
+        if (match) {
+            const start = match[1];
+            const end = match[2];
+            const presetKey = `custom_${start}_to_${end}`;
+            await showDateSelectedMenu(botToken, senderChatId, presetKey, start, end);
+            return res.status(200).json({ ok: true });
+        }
+
         if (text === '/start' || text === '/menu' || text === '/help') {
             await showMainMenu(botToken, senderChatId);
         } else if (text === '/stats') {
-            await showStats(botToken, senderChatId);
+            await showStats(botToken, senderChatId, 'study');
         } else if (text === '/export') {
             await showDateRangeMenu(botToken, senderChatId);
         } else if (text === '/thesis' || text === '/compare') {
-            await showThesisComparison(botToken, senderChatId);
+            await showThesisComparison(botToken, senderChatId, 'study');
         } else if (text === '/order' || text === '/bias') {
-            await showOrderBiasAnalysis(botToken, senderChatId);
+            await showOrderBiasAnalysis(botToken, senderChatId, 'study');
         } else {
             await showMainMenu(botToken, senderChatId, `دستور «${text}» شناسایی نشد. لطفاً از منوی زیر انتخاب کنید:`);
         }
@@ -285,20 +335,24 @@ export default async function handler(req, res) {
 async function showMainMenu(botToken, chatId, intro = null) {
     const text = intro || 
         "🎓 *سامانه مدیریت و تحلیل پژوهش زیبایی ارتودنسی*\n\n" +
-        "لطفاً عملیات مورد نظر خود را برای پایان‌نامه انتخاب کنید:";
+        "📌 *وضعیت داده‌ها:* به‌صورت پیش‌فرض فقط داده‌های رسمی پایان‌نامه (از ۲۲ اکتبر به بعد) برای دقت علمی تحلیل می‌شوند.\n\n" +
+        "عملیات مورد نظر خود را انتخاب کنید:";
 
     const keyboard = {
         inline_keyboard: [
             [
-                { text: "📊 آمار کلی و توزیع پاسخ‌ها", callback_data: "menu_stats" },
-                { text: "📅 فیلتر بازه زمانی و خروجی", callback_data: "menu_daterange" }
+                { text: "📊 آمار داده‌های اصلی (از ۲۲ اکتبر)", callback_data: "menu_stats" },
+                { text: "📅 انتخاب بازه زمانی / دلخواه", callback_data: "menu_daterange" }
             ],
             [
-                { text: "📈 مقایسه میانگین دستگاه‌ها (تز)", callback_data: "menu_thesis_metrics" },
+                { text: "📈 مقایسه نمرات دستگاه‌ها (تز)", callback_data: "menu_thesis_metrics" },
                 { text: "🔄 تحلیل اثر ترتیب (Order Bias)", callback_data: "menu_order_bias" }
             ],
             [
-                { text: "📥 دریافت فوری کل داده‌ها (CSV)", callback_data: "export_csv_all" }
+                { text: "📥 دریافت CSV داده‌های رسمی (Oct 22+)", callback_data: "export_csv_study" }
+            ],
+            [
+                { text: "🌐 مشاهده آمار کل داده‌ها (با تست‌های قبل از ۲۲)", callback_data: "menu_stats_all" }
             ]
         ]
     };
@@ -306,14 +360,15 @@ async function showMainMenu(botToken, chatId, intro = null) {
     return sendTelegramMsg(botToken, chatId, text, keyboard, "Markdown");
 }
 
-async function showStats(botToken, chatId) {
-    const data = await fetchBackendData();
-    if (data.length === 0) {
+async function showStats(botToken, chatId, preset = 'study') {
+    const rawData = await fetchBackendData();
+    if (rawData.length === 0) {
         return sendTelegramMsg(botToken, chatId, "⚠️ در حال حاضر هیچ پاسخی در سرور یافت نشد.");
     }
 
+    const data = filterByDatePreset(rawData, preset);
     const total = data.length;
-    const latest = data[data.length - 1].timestamp || 'نامشخص';
+    const latest = data.length > 0 ? (data[data.length - 1].timestamp || 'نامشخص') : 'ندارد';
 
     // Count order permutations
     const orderCounts = {};
@@ -328,21 +383,25 @@ async function showStats(botToken, chatId) {
         orderBreakdown += `▪️ ${ord}:\n   👈 ${cnt} نفر (${pct}%)\n`;
     }
 
+    const titlePrefix = preset === 'study' ? "🎯 *داده‌های رسمی پایان‌نامه (از ۲۲ اکتبر)*" : "🌐 *کل داده‌های دیتابیس (شامل پایلوت‌ها)*";
+    const filteredNote = preset === 'study' ? `\n💡 _۲۹ رکورد آزمایشی قبل از ۲۲ اکتبر فیلتر شده‌اند._` : "";
+
     const text = 
-        `📊 *گزارش آمار کلی پژوهش*\n\n` +
-        `👥 *تعداد کل پاسخ‌دهندگان:* ${total} نفر\n` +
+        `📊 *گزارش آماری پژوهش*\n${titlePrefix}\n\n` +
+        `👥 *تعداد شرکت‌کنندگان:* ${total} نفر\n` +
         `🕒 *آخرین ثبت پاسخ:* ${latest}\n\n` +
-        `🔄 *توزیع ترتیب مشاهده دستگاه‌ها:*\n${orderBreakdown}\n` +
-        `💡 _تمامی ترتیب‌های گذشته با موفقیت بازسازی و ثبت شده‌اند._`;
+        `🔄 *توزیع ترتیب مشاهده دستگاه‌ها:*\n${orderBreakdown}` +
+        filteredNote;
 
     const keyboard = {
         inline_keyboard: [
             [
-                { text: "📥 دریافت فایل این داده‌ها (CSV)", callback_data: "export_csv_all" },
+                { text: `📥 دریافت فایل این داده‌ها (CSV)`, callback_data: `export_csv_${preset}` },
                 { text: "📈 مقایسه نمرات دستگاه‌ها", callback_data: "menu_thesis_metrics" }
             ],
             [
-                { text: "🔙 بازگشت به منوی اصلی", callback_data: "menu_main" }
+                { text: "📅 تغییر بازه زمانی", callback_data: "menu_daterange" },
+                { text: "🔙 منوی اصلی", callback_data: "menu_main" }
             ]
         ]
     };
@@ -352,11 +411,14 @@ async function showStats(botToken, chatId) {
 
 async function showDateRangeMenu(botToken, chatId) {
     const text = 
-        "📅 *انتخاب بازه زمانی برای دریافت داده‌ها و خروجی اکسل/CSV*\n\n" +
-        "بازه زمانی مورد نظر خود را جهت فیلتر و صدور گزارش انتخاب کنید:";
+        "📅 *انتخاب بازه زمانی برای دریافت داده‌ها و خروجی CSV*\n\n" +
+        "می‌توانید از گزینه‌های سریع زیر استفاده کنید یا تاریخ دلخواه دستی را وارد نمایید:";
 
     const keyboard = {
         inline_keyboard: [
+            [
+                { text: "🎯 داده‌های رسمی پایان‌نامه (۲۲ اکتبر تا کنون)", callback_data: "filter_date_study" }
+            ],
             [
                 { text: "⚡ امروز (۲۴ ساعت اخیر)", callback_data: "filter_date_today" },
                 { text: "🕒 ۳ روز اخیر", callback_data: "filter_date_3days" }
@@ -366,7 +428,10 @@ async function showDateRangeMenu(botToken, chatId) {
                 { text: "📆 یک ماه اخیر", callback_data: "filter_date_30days" }
             ],
             [
-                { text: "🌐 کل داده‌های ثبت شده (همه زمان‌ها)", callback_data: "filter_date_all" }
+                { text: "✍️ تعیین تاریخ دلخواه دستی (YYYY-MM-DD)", callback_data: "prompt_custom_date" }
+            ],
+            [
+                { text: "🌐 کل داده‌ها (شامل ۲۹ رکورد تست قبل از ۲۲)", callback_data: "filter_date_all" }
             ],
             [
                 { text: "🔙 بازگشت به منو", callback_data: "menu_main" }
@@ -377,20 +442,21 @@ async function showDateRangeMenu(botToken, chatId) {
     return sendTelegramMsg(botToken, chatId, text, keyboard, "Markdown");
 }
 
-async function showDateSelectedMenu(botToken, chatId, preset) {
+async function showDateSelectedMenu(botToken, chatId, preset, customStart = null, customEnd = null) {
     const data = await fetchBackendData();
-    const filtered = filterByDatePreset(data, preset);
+    const filtered = filterByDatePreset(data, preset, customStart, customEnd);
 
-    const labels = {
-        today: "امروز",
-        '3days': "۳ روز اخیر",
-        '7days': "یک هفته اخیر",
-        '30days': "یک ماه اخیر",
-        all: "کل داده‌ها"
-    };
+    let label = preset;
+    if (preset === 'study') label = "داده‌های رسمی پایان‌نامه (از ۲۲ اکتبر تا کنون)";
+    else if (preset === 'today') label = "امروز";
+    else if (preset === '3days') label = "۳ روز اخیر";
+    else if (preset === '7days') label = "یک هفته اخیر";
+    else if (preset === '30days') label = "یک ماه اخیر";
+    else if (preset === 'all') label = "کل داده‌ها (شامل تست‌های قدیمی)";
+    else if (customStart && customEnd) label = `از ${customStart} تا ${customEnd}`;
 
     const text = 
-        `✅ *بازه انتخابی: ${labels[preset] || preset}*\n\n` +
+        `✅ *بازه انتخابی: ${label}*\n\n` +
         `📌 *تعداد رکورد در این بازه:* ${filtered.length} پاسخ‌نامه\n\n` +
         `نوع خروجی مورد نظر خود را انتخاب کنید:`;
 
@@ -432,13 +498,14 @@ async function sendExportCSV(botToken, chatId, preset, fieldFilter) {
     return showMainMenu(botToken, chatId, "فایل با موفقیت ارسال شد. عملیات بعدی:");
 }
 
-async function showThesisComparison(botToken, chatId) {
-    const data = await fetchBackendData();
-    if (data.length === 0) {
+async function showThesisComparison(botToken, chatId, preset = 'study') {
+    const rawData = await fetchBackendData();
+    if (rawData.length === 0) {
         return sendTelegramMsg(botToken, chatId, "⚠️ داده‌ای برای محاسبه وجود ندارد.");
     }
 
-    // Compute key metrics across Aligner, Ceramic, Metal
+    const data = filterByDatePreset(rawData, preset);
+
     const metrics = [
         { label: "جذابیت کلی (VAS)", key: "overall" },
         { label: "جلب توجه / دیده شدن", key: "distract" },
@@ -448,7 +515,7 @@ async function showThesisComparison(botToken, chatId) {
         { label: "درک بهداشت دهان", key: "hygiene" }
     ];
 
-    let report = "📈 *مقایسه میانگین و انحراف معیار دستگاه‌ها (آماده تز)*\n\n";
+    let report = `📈 *مقایسه میانگین نمرات دستگاه‌ها (تعداد: ${data.length} نفر)*\n`;
     report += "معیار: `میانگین ± انحراف معیار`\n";
     report += "━━━━━━━━━━━━━━━━━━━━\n";
 
@@ -467,9 +534,10 @@ async function showThesisComparison(botToken, chatId) {
         inline_keyboard: [
             [
                 { text: "🔄 بررسی اثر ترتیب بر نمرات", callback_data: "menu_order_bias" },
-                { text: "📥 دریافت فایل CSV کامل", callback_data: "export_csv_all" }
+                { text: "📥 دریافت فایل CSV این داده‌ها", callback_data: `export_csv_${preset}` }
             ],
             [
+                { text: "📅 تغییر بازه زمانی", callback_data: "menu_daterange" },
                 { text: "🔙 بازگشت به منوی اصلی", callback_data: "menu_main" }
             ]
         ]
@@ -478,14 +546,16 @@ async function showThesisComparison(botToken, chatId) {
     return sendTelegramMsg(botToken, chatId, report, keyboard, "Markdown");
 }
 
-async function showOrderBiasAnalysis(botToken, chatId) {
-    const data = await fetchBackendData();
-    if (data.length === 0) {
+async function showOrderBiasAnalysis(botToken, chatId, preset = 'study') {
+    const rawData = await fetchBackendData();
+    if (rawData.length === 0) {
         return sendTelegramMsg(botToken, chatId, "⚠️ داده‌ای برای محاسبه وجود ندارد.");
     }
 
-    let report = "🔄 *بررسی اثر تقدم و تأخر (Order Effect / Bias)*\n\n";
-    report += "میانگین جذابیت کلی لبخند (VAS Overall) بر حسب اینکه دستگاه در چه نوبتی دیده شده است:\n";
+    const data = filterByDatePreset(rawData, preset);
+
+    let report = `🔄 *تحلیل اثر ترتیب و تقدم-تأخر (تعداد: ${data.length} نفر)*\n\n`;
+    report += "میانگین نمره جذابیت کلی (VAS Overall) بر اساس نوبت مشاهده:\n";
     report += "━━━━━━━━━━━━━━━━━━━━\n\n";
 
     for (const app of ['aligner', 'ceramic', 'metal']) {
@@ -501,20 +571,21 @@ async function showOrderBiasAnalysis(botToken, chatId) {
         const s3 = calcMeanSD(pos3Vals);
 
         report += `🦷 *${faName}:*\n`;
-        report += `  ۱️⃣ وقتی اول دیده شد (N=${s1.count}): \`${s1.mean} ± ${s1.sd}\`\n`;
-        report += `  ۲️⃣ وقتی دوم دیده شد (N=${s2.count}): \`${s2.mean} ± ${s2.sd}\`\n`;
-        report += `  ۳️⃣ وقتی سوم دیده شد (N=${s3.count}): \`${s3.mean} ± ${s3.sd}\`\n\n`;
+        report += `  ۱️⃣ دیده شده به عنوان دستگاه اول (N=${s1.count}): \`${s1.mean} ± ${s1.sd}\`\n`;
+        report += `  ۲️⃣ دیده شده به عنوان دستگاه دوم (N=${s2.count}): \`${s2.mean} ± ${s2.sd}\`\n`;
+        report += `  ۳️⃣ دیده شده به عنوان دستگاه سوم (N=${s3.count}): \`${s3.mean} ± ${s3.sd}\`\n\n`;
     }
 
-    report += "💡 _این جدول نشان می‌دهد آیا رندوم‌سازی ترتیب توانسته اثر سوگیری پاسخ‌دهی را خنثی کند یا خیر._";
+    report += "💡 _نمرات فوق تایید می‌کنند که آیا تقدم و تاخر در نمایش، سوگیری ایجاد کرده است یا خیر._";
 
     const keyboard = {
         inline_keyboard: [
             [
                 { text: "📊 مقایسه کلی دستگاه‌ها", callback_data: "menu_thesis_metrics" },
-                { text: "📥 دریافت فایل CSV کامل", callback_data: "export_csv_all" }
+                { text: "📥 دریافت فایل CSV این داده‌ها", callback_data: `export_csv_${preset}` }
             ],
             [
+                { text: "📅 تغییر بازه زمانی", callback_data: "menu_daterange" },
                 { text: "🔙 بازگشت به منوی اصلی", callback_data: "menu_main" }
             ]
         ]
