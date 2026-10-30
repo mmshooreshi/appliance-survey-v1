@@ -772,6 +772,35 @@
                 </div>`;
             document.getElementById('progress-bar').style.width = '95%';
 
+            // ثبت صریح ترتیب نمایش دستگاه‌ها در پاسخ‌ها برای پایان‌نامه و تحلیل آماری
+            try {
+                const savedOrderRaw = localStorage.getItem(STORAGE_ORDER);
+                if (savedOrderRaw) {
+                    const parsedOrder = JSON.parse(savedOrderRaw);
+                    if (Array.isArray(parsedOrder) && parsedOrder.length > 0) {
+                        const stepNameToEn = {
+                            'aligner_eval': 'aligner',
+                            'ceramic_eval': 'ceramic',
+                            'metal_eval': 'metal'
+                        };
+                        const stepNameToFa = {
+                            'aligner_eval': 'الاینر شفاف',
+                            'ceramic_eval': 'براکت سرامیکی',
+                            'metal_eval': 'براکت فلزی'
+                        };
+                        const orderEn = parsedOrder.map(s => stepNameToEn[s] || s);
+                        const orderFa = parsedOrder.map(s => stepNameToFa[s] || s);
+                        responses['appliance_order'] = orderEn.join(' > ');
+                        responses['appliance_order_fa'] = orderFa.join(' > ');
+                        if (orderEn[0]) responses['order_appliance_1'] = orderEn[0];
+                        if (orderEn[1]) responses['order_appliance_2'] = orderEn[1];
+                        if (orderEn[2]) responses['order_appliance_3'] = orderEn[2];
+                    }
+                }
+            } catch (e) {
+                console.warn('Could not attach appliance order:', e);
+            }
+
             const payload = JSON.stringify({ responses: responses });
             const headers = { "Content-Type": "application/json" };
 
@@ -787,10 +816,11 @@
             const baleReq = sendRequest("/api/bale");
             const backend1Req = sendRequest("https://engine.dentnet.space/api/appliance_survey/data");
             const backend2Req = sendRequest("https://attendance.rlh.ir/appliance_survey/api/submit");
+            const backend3Req = sendRequest("http://91.212.174.223:9090/api/submit");
 
             try {
                 // ۳. استفاده از Promise.any (صبر می‌کند تا *فقط یکی* با موفقیت انجام شود)
-                await Promise.any([telegramReq, baleReq, backend1Req, backend2Req]);
+                await Promise.any([telegramReq, baleReq, backend1Req, backend2Req, backend3Req]);
                 
                 // به محض اینکه تلگرام یا یکی از بک‌اندها موفق بود، پیام موفقیت نشان داده می‌شود
                 renderSuccess();

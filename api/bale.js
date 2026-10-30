@@ -23,7 +23,13 @@ export default async function handler(req, res) {
     const chatIds = chatIdsString.split(',').map(id => id.trim()).filter(Boolean);
 
     // ۱. ساخت متن پیام
-    let messageText = "📋 ثبت جدید پاسخ‌نامه (بله):\n\n";
+    const orderInfo = responses.appliance_order_fa || responses.appliance_order;
+    let messageText = "📋 ثبت جدید پاسخ‌نامه (بله):\n";
+    if (orderInfo) {
+        messageText += `🔄 ترتیب نمایش: ${orderInfo}\n`;
+    }
+    messageText += "\n";
+
     for (const [key, value] of Object.entries(responses)) {
         messageText += `- ${key}: ${value}\n`;
     }
