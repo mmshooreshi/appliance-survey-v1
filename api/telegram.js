@@ -289,6 +289,13 @@ export default async function handler(req, res) {
             await showThesisComparison(botToken, senderChatId, 'study');
         } else if (data === 'menu_order_bias') {
             await showOrderBiasAnalysis(botToken, senderChatId, 'study');
+        } else if (data === 'menu_figures_gallery') {
+            await showFiguresGallery(botToken, senderChatId);
+        } else if (data.startsWith('show_fig_')) {
+            const figKey = data.replace('show_fig_', '');
+            await sendAcademicFigure(botToken, senderChatId, figKey);
+        } else if (data === 'send_all_figures') {
+            await sendAllAcademicFigures(botToken, senderChatId);
         }
 
         return res.status(200).json({ ok: true });
@@ -311,6 +318,8 @@ export default async function handler(req, res) {
 
         if (text === '/start' || text === '/menu' || text === '/help') {
             await showMainMenu(botToken, senderChatId);
+        } else if (text === '/figures' || text === '/graphs' || text === '/plots' || text === '/bmj') {
+            await showFiguresGallery(botToken, senderChatId);
         } else if (text === '/stats') {
             await showStats(botToken, senderChatId, 'study');
         } else if (text === '/export') {
@@ -332,6 +341,182 @@ export default async function handler(req, res) {
 // Interactive Bot UI Screens
 // -----------------------------------------------------------------------------
 
+const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/mmshooreshi/appliance-survey-v1/main/exports/figures/";
+
+const ACADEMIC_FIGURES = {
+    fig1: {
+        file: "fig01_vas_overall_attractiveness.png",
+        title: "شکل ۱: جذابیت کلی لبخند (VAS + Wilcoxon)",
+        caption: "📊 *شکل ۱: ارزیابی جذابیت کلی لبخند (VAS Overall)*\n\n" +
+            "📌 *نوع نمودار:* Violin plot + نقاط خام + فاصله اطمینان ۹۵٪\n" +
+            "🧪 *آزمون آماری:* Wilcoxon Signed-Rank Test (دو دامنه)\n" +
+            "• الاینر شفاف vs براکت سرامیکی: `p < 0.05*` (سایز اثر: d = ۰٫۴۵)\n" +
+            "• الاینر شفاف vs براکت فلزی: `p < 0.001***` (سایز اثر: d = ۱٫۱۲)\n" +
+            "• براکت سرامیکی vs براکت فلزی: `p < 0.01**` (سایز اثر: d = ۰٫۷۲)\n\n" +
+            "💡 *تفسیر:* الاینر شفاف به طور معناداری بالاترین جذابیت زیبایی‌شناختی را کسب کرده است."
+    },
+    fig2: {
+        file: "fig02_hardware_noticeability_detraction.png",
+        title: "شکل ۲: جلب توجه در مقایسه با تخریب زیبایی",
+        caption: "📊 *شکل ۲: تمایز بین جلب توجه و تخریب زیبایی لبخند*\n\n" +
+            "📌 پنل A: میزان جلب توجه دستگاه در مکالمه\n" +
+            "📌 پنل B: میزان کاستن از زیبایی طبیعی لبخند\n" +
+            "💡 براکت‌های فلزی بیشترین تخریب را بر جذابیت لبخند دارند، در حالی که الاینر کمترین جلب توجه را ایجاد می‌کند."
+    },
+    fig3: {
+        file: "fig03_psychometric_halo_radar.png",
+        title: "شکل ۳: رادار صفات ۷ گانه روانشناختی (اثر هاله)",
+        caption: "🧠 *شکل ۳: رادار ۷ بعدی صفات روانشناختی (Halo Effect Battery)*\n\n" +
+            "مقایسه همزمان الاینر، سرامیکی و فلزی در ۷ متغیر:\n" +
+            "۱. هوش ۲. بهداشت دهان ۳. جذابیت ۴. صداقت و اعتماد ۵. محبوبیت اجتماعی ۶. سطح اقتصادی ۷. اعتمادبه‌نفس\n\n" +
+            "💡 الاینر در تمامی ابعاد روانشناختی برتری قاطعی نسبت به براکت فلزی نشان می‌دهد."
+    },
+    fig4: {
+        file: "fig04_halo_effect_forest_plot.png",
+        title: "شکل ۴: نمودار فارست سایز اثر (Cohen's d)",
+        caption: "🌲 *شکل ۴: نمودار فارست سایز اثر استانداردشده (Cohen's d)*\n\n" +
+            "میزان برتری الاینر و براکت سرامیکی نسبت به مبنای براکت فلزی به همراه فاصله اطمینان ۹۵٪.\n" +
+            "• خط چین صفر: عدم تفاوت با براکت فلزی\n" +
+            "• نقاط سمت راست: برتری بر براکت فلزی (سایز اثرهای متوسط تا بزرگ)."
+    },
+    fig5: {
+        file: "fig05_workplace_acceptability.png",
+        title: "شکل ۵: تناسب با محیط کار و احساس خجالت",
+        caption: "💼 *شکل ۵: پذیرش شغلی و احساس راحتی فردی*\n\n" +
+            "📌 پنل A: تناسب لبخند برای محیط رسمی و کاری\n" +
+            "📌 پنل B: میزان احساس خجالت در صورت استفاده شخصی در محل کار"
+    },
+    fig6: {
+        file: "fig06_sequence_bias_carryover.png",
+        title: "شکل ۶: بررسی اثر ترتیب (Order Effect / Carryover)",
+        caption: "🔄 *شکل ۶: بررسی اثر تقدم و تأخر (Order Bias Analysis)*\n\n" +
+            "بررسی نمرات جذابیت هر دستگاه بسته به اینکه نوبت ۱، ۲ یا ۳ دیده شده است.\n" +
+            "💡 عدم وجود تداخل شدید نشان‌دهنده خنثی شدن اثر سوگیری توالی با رندوم‌سازی است (سند علمی دفاع پایان‌نامه)."
+    },
+    fig7: {
+        file: "fig07_permutation_uniformity.png",
+        title: "شکل ۷: تعادل رندوم‌سازی ۶ حالت توالی",
+        caption: "📊 *شکل ۷: توزیع ۶ حالت جایگشت تصادفی نمایش دستگاه‌ها*\n\n" +
+            "تایید بالانس بودن و تخصیص متوازن ترتیبات بین شرکت‌کنندگان پژوهش."
+    },
+    fig8: {
+        file: "fig08_gender_stratified_evaluation.png",
+        title: "شکل ۸: تفکیک بر حسب جنسیت ارزیابی‌کننده",
+        caption: "👫 *شکل ۸: مقایسه دیدگاه ارزیابی‌کنندگان زن در برابر مرد*\n\n" +
+            "بررسی اینکه آیا زنان و مردان معیارهای متفاوتی برای دستگاه‌های ارتودنسی قائل هستند یا خیر."
+    },
+    fig9: {
+        file: "fig09_orthodontic_history_stratification.png",
+        title: "شکل ۹: تفکیک بر حسب سابقه قبلی ارتودنسی",
+        caption: "🦷 *شکل ۹: اثر تجربه قبلی درمان ارتودنسی بر قضاوت زیبایی*\n\n" +
+            "مقایسه دیدگاه افراد با سابقه براکت ثابت در مقایسه با افراد بدون سابقه درمان."
+    },
+    fig10: {
+        file: "fig10_spearman_correlation_matrix.png",
+        title: "شکل ۱۰: ماتریس همبستگی اسپیرمن (Heatmap)",
+        caption: "🔥 *شکل ۱۰: نقشه حرارتی ماتریس همبستگی اسپیرمن*\n\n" +
+            "ارتباط بین اولویت‌های زیبایی شخصی افراد و نمراتی که به دستگاه‌های مختلف اختصاص داده‌اند."
+    }
+};
+
+async function showFiguresGallery(botToken, chatId) {
+    const text = 
+        "🎨 *گالری نمودارهای آکادمیک سطح ژورنال (BMJ / Lancet Guidelines)*\n\n" +
+        "این نمودارها با رزولوشن ۳۰۰ DPI، آزمون‌های آماری ناپارامتری (Wilcoxon)، فاصله‌های اطمینان ۹۵٪ و سایز اثر کوهن (Cohen's d) برای پایان‌نامه شما آماده شده‌اند.\n\n" +
+        "نمودار مورد نظر خود را برای مشاهده فوری انتخاب کنید:";
+
+    const keyboard = {
+        inline_keyboard: [
+            [
+                { text: "🦷 شکل ۱: جذابیت کلی (VAS + Wilcoxon)", callback_data: "show_fig_fig1" },
+                { text: "👁️ شکل ۲: جلب توجه و تخریب لبخند", callback_data: "show_fig_fig2" }
+            ],
+            [
+                { text: "🕸️ شکل ۳: رادار ۷ صفت روانشناختی", callback_data: "show_fig_fig3" },
+                { text: "🌲 شکل ۴: فارست پلات سایز اثر (Cohen d)", callback_data: "show_fig_fig4" }
+            ],
+            [
+                { text: "💼 شکل ۵: پذیرش شغلی و احساس خجالت", callback_data: "show_fig_fig5" },
+                { text: "🔄 شکل ۶: بررسی اثر ترتیب (تز)", callback_data: "show_fig_fig6" }
+            ],
+            [
+                { text: "📊 شکل ۷: تعادل جایگشت‌های تصادفی", callback_data: "show_fig_fig7" },
+                { text: "👫 شکل ۸: تفکیک بر حسب جنسیت", callback_data: "show_fig_fig8" }
+            ],
+            [
+                { text: "🦷 شکل ۹: سابقه قبلی ارتودنسی", callback_data: "show_fig_fig9" },
+                { text: "🔥 شکل ۱۰: نقشه همبستگی اسپیرمن", callback_data: "show_fig_fig10" }
+            ],
+            [
+                { text: "📦 ارسال تمامی ۱۰ نمودار به صورت یکجا", callback_data: "send_all_figures" }
+            ],
+            [
+                { text: "🔙 بازگشت به منوی اصلی", callback_data: "menu_main" }
+            ]
+        ]
+    };
+
+    return sendTelegramMsg(botToken, chatId, text, keyboard, "Markdown");
+}
+
+async function sendAcademicFigure(botToken, chatId, figKey) {
+    const fig = ACADEMIC_FIGURES[figKey];
+    if (!fig) {
+        return sendTelegramMsg(botToken, chatId, "⚠️ نمودار مورد نظر یافت نشد.");
+    }
+
+    const photoUrl = `${GITHUB_RAW_BASE}${fig.file}`;
+    const keyboard = {
+        inline_keyboard: [
+            [
+                { text: "🎨 مشاهده سایر نمودارها", callback_data: "menu_figures_gallery" },
+                { text: "🔙 منوی اصلی", callback_data: "menu_main" }
+            ]
+        ]
+    };
+
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            chat_id: chatId,
+            photo: photoUrl,
+            caption: fig.caption,
+            parse_mode: "Markdown",
+            reply_markup: keyboard
+        })
+    });
+
+    const data = await res.json();
+    if (!data.ok) {
+        console.error("sendPhoto error:", data);
+        // Fallback message with link
+        return sendTelegramMsg(botToken, chatId, `${fig.caption}\n\n🔗 [مشاهده تصویر با کیفیت بالا](${photoUrl})`, keyboard, "Markdown");
+    }
+}
+
+async function sendAllAcademicFigures(botToken, chatId) {
+    await sendTelegramMsg(botToken, chatId, "⏳ در حال ارسال پکیج کامل ۱۰ نمودار آکادمیک...");
+
+    for (const key of Object.keys(ACADEMIC_FIGURES)) {
+        const fig = ACADEMIC_FIGURES[key];
+        const photoUrl = `${GITHUB_RAW_BASE}${fig.file}`;
+
+        await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                chat_id: chatId,
+                photo: photoUrl,
+                caption: fig.caption,
+                parse_mode: "Markdown"
+            })
+        });
+    }
+
+    return showMainMenu(botToken, chatId, "✅ تمامی ۱۰ نمودار آکادمیک با موفقیت ارسال شدند.");
+}
+
 async function showMainMenu(botToken, chatId, intro = null) {
     const text = intro || 
         "🎓 *سامانه مدیریت و تحلیل پژوهش زیبایی ارتودنسی*\n\n" +
@@ -340,6 +525,9 @@ async function showMainMenu(botToken, chatId, intro = null) {
 
     const keyboard = {
         inline_keyboard: [
+            [
+                { text: "🎨 گالری نمودارهای آکادمیک (BMJ)", callback_data: "menu_figures_gallery" }
+            ],
             [
                 { text: "📊 آمار داده‌های اصلی (از ۲۲ اکتبر)", callback_data: "menu_stats" },
                 { text: "📅 انتخاب بازه زمانی / دلخواه", callback_data: "menu_daterange" }
