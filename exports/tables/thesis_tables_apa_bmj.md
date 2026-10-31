@@ -1,6 +1,6 @@
 # Academic Thesis Tables: Orthodontic Appliance Aesthetic Perception Study
 
-**Sample Size:** N = 20 official study evaluators (evaluated between Oct 22 and Oct 30, 2026).
+**Sample Size:** N = 25 official study evaluators (evaluated between Oct 22 and Oct 30, 2026).
 **Standard:** Conforming to APA 7th Edition & BMJ/Lancet biomedical reporting guidelines.
 
 ## Table 1: Evaluator Demographics & Baseline Characteristics
@@ -9,22 +9,22 @@
 
 | Characteristic / Variable   | Category / Stratum              |   Frequency (N) | Percentage (%)   | Cumulative / Summary   |
 |:----------------------------|:--------------------------------|----------------:|:-----------------|:-----------------------|
-| Total Sample Size           | Official Study Cohort (Oct 22+) |              20 | 100.0%           | 20/20                  |
-| Biological Sex              | Male                            |              11 | 55.0%            | 11/20                  |
-| Biological Sex              | Female                          |               9 | 45.0%            | 9/20                   |
-| Age Cohort                  | 18-24                           |               5 | 25.0%            | 5/20                   |
-| Age Cohort                  | 25-34                           |              14 | 70.0%            | 14/20                  |
-| Age Cohort                  | 55+                             |               1 | 5.0%             | 1/20                   |
-| Dental Affiliation          | Layperson (General Public)      |              16 | 80.0%            | 16/20                  |
-| Dental Affiliation          | Dental Professional / Student   |               4 | 20.0%            | 4/20                   |
-| Prior Orthodontic History   | No                              |              11 | 55.0%            | 11/20                  |
-| Prior Orthodontic History   | Fixed                           |               6 | 30.0%            | 6/20                   |
-| Prior Orthodontic History   | Multiple                        |               2 | 10.0%            | 2/20                   |
-| Prior Orthodontic History   | Removable                       |               1 | 5.0%             | 1/20                   |
-| Highest Education Level     | Master                          |               6 | 30.0%            | 6/20                   |
-| Highest Education Level     | Student                         |               6 | 30.0%            | 6/20                   |
-| Highest Education Level     | Phd_Md                          |               6 | 30.0%            | 6/20                   |
-| Highest Education Level     | Bachelor                        |               2 | 10.0%            | 2/20                   |
+| Total Sample Size           | Official Study Cohort (Oct 22+) |              25 | 100.0%           | 25/25                  |
+| Biological Sex              | Male                            |              16 | 64.0%            | 16/25                  |
+| Biological Sex              | Female                          |               9 | 36.0%            | 9/25                   |
+| Age Cohort                  | 18-24                           |               6 | 24.0%            | 6/25                   |
+| Age Cohort                  | 25-34                           |              18 | 72.0%            | 18/25                  |
+| Age Cohort                  | 55+                             |               1 | 4.0%             | 1/25                   |
+| Dental Affiliation          | Layperson (General Public)      |              21 | 84.0%            | 21/25                  |
+| Dental Affiliation          | Dental Professional / Student   |               4 | 16.0%            | 4/25                   |
+| Prior Orthodontic History   | No                              |              13 | 52.0%            | 13/25                  |
+| Prior Orthodontic History   | Fixed                           |               7 | 28.0%            | 7/25                   |
+| Prior Orthodontic History   | Multiple                        |               4 | 16.0%            | 4/25                   |
+| Prior Orthodontic History   | Removable                       |               1 | 4.0%             | 1/25                   |
+| Highest Education Level     | Master                          |               9 | 36.0%            | 9/25                   |
+| Highest Education Level     | Student                         |               7 | 28.0%            | 7/25                   |
+| Highest Education Level     | Phd_Md                          |               6 | 24.0%            | 6/25                   |
+| Highest Education Level     | Bachelor                        |               3 | 12.0%            | 3/25                   |
 
 ---
 
@@ -34,11 +34,11 @@
 
 | Evaluated Dimension                         | Clear Aligner (Mean ± SD)   | Ceramic Bracket (Mean ± SD)   | Metallic Bracket (Mean ± SD)   | Aligner vs Ceramic (p; Cohen d)   | Aligner vs Metal (p; Cohen d)   | Ceramic vs Metal (p; Cohen d)   |
 |:--------------------------------------------|:----------------------------|:------------------------------|:-------------------------------|:----------------------------------|:--------------------------------|:--------------------------------|
-| VAS Overall Aesthetic Attractiveness (0–10) | 7.40 ± 1.73                 | 6.25 ± 1.94                   | 4.75 ± 1.94                    | p = 0.010*; d=0.66                | p = 0.001**; d=1.05             | p = 0.018*; d=0.60              |
-| VAS Conversational Noticeability (0–10)     | 2.10 ± 0.97                 | 3.30 ± 0.92                   | 4.30 ± 0.86                    | p = 0.002**; d=-1.00              | p < 0.001***; d=-1.53           | p = 0.009**; d=-0.75            |
-| VAS Professional Suitability (0–10)         | 3.95 ± 0.89                 | 3.70 ± 0.86                   | 2.95 ± 0.83                    | p = 0.374 (ns); d=0.21            | p = 0.006**; d=0.80             | p = 0.009**; d=0.70             |
-| VAS Detraction from Natural Smile (0–10)    | 1.90 ± 0.85                 | 2.85 ± 0.99                   | 3.55 ± 0.83                    | p = 0.009**; d=-0.72              | p < 0.001***; d=-1.51           | p = 0.050 (ns); d=-0.49         |
-| VAS Shade Blending & Color Harmony (1–5)    | 4.10 ± 1.07                 | 3.30 ± 1.17                   | 2.15 ± 0.93                    | p = 0.034*; d=0.53                | p < 0.001***; d=1.48            | p = 0.012*; d=0.71              |
+| VAS Overall Aesthetic Attractiveness (0–10) | 7.48 ± 1.58                 | 6.08 ± 1.78                   | 4.88 ± 1.86                    | p < 0.001***; d=0.83              | p < 0.001***; d=1.11            | p = 0.022*; d=0.50              |
+| VAS Conversational Noticeability (0–10)     | 2.28 ± 1.02                 | 3.32 ± 0.85                   | 4.20 ± 0.82                    | p < 0.001***; d=-0.92             | p < 0.001***; d=-1.31           | p = 0.004**; d=-0.71            |
+| VAS Professional Suitability (0–10)         | 3.92 ± 0.81                 | 3.64 ± 0.86                   | 2.96 ± 0.84                    | p = 0.229 (ns); d=0.26            | p = 0.002**; d=0.82             | p = 0.004**; d=0.69             |
+| VAS Detraction from Natural Smile (0–10)    | 2.12 ± 0.97                 | 2.96 ± 0.93                   | 3.56 ± 0.77                    | p = 0.004**; d=-0.69              | p < 0.001***; d=-1.28           | p = 0.039*; d=-0.46             |
+| VAS Shade Blending & Color Harmony (1–5)    | 4.08 ± 1.00                 | 3.36 ± 1.08                   | 2.32 ± 0.99                    | p = 0.019*; d=0.53                | p < 0.001***; d=1.29            | p = 0.006**; d=0.69             |
 
 ---
 
@@ -48,9 +48,9 @@
 
 | Appliance Type                  | Position 1 (Mean ± SD) [N]   | Position 2 (Mean ± SD) [N]   | Position 3 (Mean ± SD) [N]   |   Kruskal-Wallis H Statistic | p-value (Order Bias)   | Carryover Neutrality Interpretation     |
 |:--------------------------------|:-----------------------------|:-----------------------------|:-----------------------------|-----------------------------:|:-----------------------|:----------------------------------------|
-| Clear Aligner (الاینر شفاف)     | 7.57 ± 1.51 [N=7]            | 6.00 ± 1.53 [N=7]            | 8.83 ± 0.75 [N=6]            |                       10.17  | p = 0.006**            | Position effect detected (p < 0.05)     |
-| Ceramic Bracket (براکت سرامیکی) | 6.60 ± 1.14 [N=5]            | 7.80 ± 1.64 [N=5]            | 5.30 ± 1.95 [N=10]           |                        4.582 | p = 0.101 (ns)         | No significant position bias (p > 0.05) |
-| Metallic Bracket (براکت فلزی)   | 5.00 ± 2.14 [N=8]            | 4.00 ± 1.69 [N=8]            | 5.75 ± 1.89 [N=4]            |                        3.077 | p = 0.215 (ns)         | No significant position bias (p > 0.05) |
+| Clear Aligner (الاینر شفاف)     | 7.50 ± 1.41 [N=8]            | 6.44 ± 1.67 [N=9]            | 8.62 ± 0.74 [N=8]            |                        9.378 | p = 0.009**            | Position effect detected (p < 0.05)     |
+| Ceramic Bracket (براکت سرامیکی) | 6.33 ± 1.21 [N=6]            | 7.00 ± 1.69 [N=8]            | 5.27 ± 1.85 [N=11]           |                        2.469 | p = 0.291 (ns)         | No significant position bias (p > 0.05) |
+| Metallic Bracket (براکت فلزی)   | 5.36 ± 1.91 [N=11]           | 4.00 ± 1.69 [N=8]            | 5.17 ± 1.83 [N=6]            |                        3.217 | p = 0.200 (ns)         | No significant position bias (p > 0.05) |
 
 ---
 
@@ -58,11 +58,11 @@
 
 *Independent comparison between laypeople evaluators and individuals with dental profession or training, demonstrating uniform aesthetic preference across both cohorts.*
 
-| Appliance Type                  | Laypeople (Mean ± SD) [N=16]   | Dental Background (Mean ± SD) [N=4]   |   Mean Difference (Lay - Dental) |   Mann-Whitney U Statistic | p-value (Two-tailed)   | Statistical Conclusion    |
+| Appliance Type                  | Laypeople (Mean ± SD) [N=21]   | Dental Background (Mean ± SD) [N=4]   |   Mean Difference (Lay - Dental) |   Mann-Whitney U Statistic | p-value (Two-tailed)   | Statistical Conclusion    |
 |:--------------------------------|:-------------------------------|:--------------------------------------|---------------------------------:|---------------------------:|:-----------------------|:--------------------------|
-| Clear Aligner (الاینر شفاف)     | 7.44 ± 1.90                    | 7.25 ± 0.96                           |                             0.19 |                       36.5 | p = 0.700 (ns)         | No significant difference |
-| Ceramic Bracket (براکت سرامیکی) | 6.38 ± 2.16                    | 5.75 ± 0.50                           |                             0.62 |                       46   | p = 0.188 (ns)         | No significant difference |
-| Metallic Bracket (براکت فلزی)   | 4.88 ± 1.82                    | 4.25 ± 2.63                           |                             0.62 |                       38   | p = 0.596 (ns)         | No significant difference |
+| Clear Aligner (الاینر شفاف)     | 7.52 ± 1.69                    | 7.25 ± 0.96                           |                             0.27 |                       49.5 | p = 0.595 (ns)         | No significant difference |
+| Ceramic Bracket (براکت سرامیکی) | 6.14 ± 1.93                    | 5.75 ± 0.50                           |                             0.39 |                       52.5 | p = 0.445 (ns)         | No significant difference |
+| Metallic Bracket (براکت فلزی)   | 5.00 ± 1.73                    | 4.25 ± 2.63                           |                             0.75 |                       50.5 | p = 0.544 (ns)         | No significant difference |
 
 ---
 

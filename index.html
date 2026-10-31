@@ -811,18 +811,14 @@
                 return res;
             };
 
-            // تعریف مسیرهای ارسال (تلگرام، بله و بک‌اندها)
+            // تعریف مسیرهای ارسال ایمن بدون Mixed Content (پروکسی دیتابیس، تلگرام و بله با ماندگاری کامل)
+            const submitProxyReq = sendRequest("/api/submit");
             const telegramReq = sendRequest("/api/telegram");
             const baleReq = sendRequest("/api/bale");
-            const backend1Req = sendRequest("https://engine.dentnet.space/api/appliance_survey/data");
-            const backend2Req = sendRequest("https://attendance.rlh.ir/appliance_survey/api/submit");
-            const backend3Req = sendRequest("http://91.212.174.223:9090/api/submit");
 
             try {
-                // ۳. استفاده از Promise.any (صبر می‌کند تا *فقط یکی* با موفقیت انجام شود)
-                await Promise.any([telegramReq, baleReq, backend1Req, backend2Req, backend3Req]);
-                
-                // به محض اینکه تلگرام یا یکی از بک‌اندها موفق بود، پیام موفقیت نشان داده می‌شود
+                // صبر می‌کند تا حداقل یکی از مسیرهای امن سرور پاسخ موفق دهند
+                await Promise.any([submitProxyReq, telegramReq, baleReq]);
                 renderSuccess();
 
             } catch (err) {

@@ -134,8 +134,9 @@
             // ۲. دریافت اطلاعات ثبت‌شده از دیتابیس (با فال‌بک خودکار)
             let rawData = [];
             const endpoints = [
-                'https://engine.dentnet.space/api/appliance_survey/data',
-                'http://91.212.174.223:9090/api/data'
+                '/api/data',
+                'http://91.212.174.223:9090/api/data',
+                'https://engine.dentnet.space/api/appliance_survey/data'
             ];
             for (const ep of endpoints) {
                 try {
