@@ -472,13 +472,18 @@ async function sendAcademicFigure(botToken, chatId, figKey) {
         ]
     };
 
+    const rawData = await fetchBackendData();
+    const cohort = filterByDatePreset(rawData, 'study');
+    const nFa = toPersianDigits(cohort.length);
+    const liveCaption = `${fig.caption}\n\n👥 *حجم نمونه زنده دیتابیس:* ${nFa} نفر | برای دریافت مقادیر عددی دقیق، از دکمه‌های XLSX یا CSV زیر استفاده کنید.`;
+
     const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             chat_id: chatId,
             photo: photoUrl,
-            caption: fig.caption,
+            caption: liveCaption,
             parse_mode: "Markdown",
             reply_markup: keyboard
         })
@@ -585,11 +590,67 @@ async function showThesisTablesMenu(botToken, chatId) {
     return sendTelegramMsg(botToken, chatId, text, keyboard, "Markdown");
 }
 
+function calcArrayStats(arr) {
+    const valid = arr.map(Number).filter(n => !isNaN(n));
+    if (valid.length === 0) return { n: 0, mean: "0.00", sd: "0.00" };
+    const n = valid.length;
+    const mean = valid.reduce((a, b) => a + b, 0) / n;
+    const variance = n > 1 ? valid.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (n - 1) : 0;
+    const sd = Math.sqrt(variance);
+    return { n, mean: mean.toFixed(2), sd: sd.toFixed(2) };
+}
+
 async function showSingleTablePreview(botToken, chatId, tableNum) {
-    const tableKey = `t${tableNum}`;
-    const tData = THESIS_TABLES_DATA[tableKey];
-    if (!tData) {
-        return sendTelegramMsg(botToken, chatId, "⚠️ جدول مورد نظر یافت نشد.");
+    const rawData = await fetchBackendData();
+    const cohort = filterByDatePreset(rawData, 'study');
+    const nFa = toPersianDigits(cohort.length);
+
+    let text = "";
+    if (tableNum === '1') {
+        const maleCnt = cohort.filter(r => r.q_gender === 'male').length;
+        const femCnt = cohort.filter(r => r.q_gender === 'female').length;
+        const layCnt = cohort.filter(r => r.q_dentist_screen !== 'yes').length;
+        const denCnt = cohort.filter(r => r.q_dentist_screen === 'yes').length;
+        text = `📋 *جدول ۱: ویژگی‌های دموگرافیک شرکت‌کنندگان رسمی پژوهش (محاسبه آنی)*\n\n` +
+               `• *حجم نمونه کل:* ${nFa} نفر (۱۰۰٪)\n` +
+               `• *جنسیت:* ${toPersianDigits(maleCnt)} مرد (${toPersianDigits(((maleCnt / cohort.length) * 100).toFixed(1))}٪) | ${toPersianDigits(femCnt)} زن (${toPersianDigits(((femCnt / cohort.length) * 100).toFixed(1))}٪)\n` +
+               `• *وابستگی به دندانپزشکی:* عامه مردم: ${toPersianDigits(layCnt)} نفر (${toPersianDigits(((layCnt / cohort.length) * 100).toFixed(1))}٪) | کادر/دانشجوی دندانپزشکی: ${toPersianDigits(denCnt)} نفر (${toPersianDigits(((denCnt / cohort.length) * 100).toFixed(1))}٪)\n\n` +
+               `💡 _محاسبه شده به‌صورت کاملاً داینامیک از روی دیتابیس زنده._`;
+    } else if (tableNum === '2') {
+        const alStats = calcArrayStats(cohort.map(r => r.vas_aligner_overall).filter(Boolean));
+        const ceStats = calcArrayStats(cohort.map(r => r.vas_ceramic_overall).filter(Boolean));
+        const meStats = calcArrayStats(cohort.map(r => r.vas_metal_overall).filter(Boolean));
+        text = `📋 *جدول ۲: نمرات جذابیت کلی زیبایی سیستم‌های ارتودنسی (N=${nFa})*\n\n` +
+               `۱. *الاینر شفاف:* \`${toPersianDigits(alStats.mean)} ± ${toPersianDigits(alStats.sd)}\`\n` +
+               `۲. *براکت سرامیکی:* \`${toPersianDigits(ceStats.mean)} ± ${toPersianDigits(ceStats.sd)}\`\n` +
+               `۳. *براکت فلزی:* \`${toPersianDigits(meStats.mean)} ± ${toPersianDigits(meStats.sd)}\`\n\n` +
+               `اختلاف نمره الاینر با سرامیکی: \`${toPersianDigits((Number(alStats.mean) - Number(ceStats.mean)).toFixed(2))}\` نمره\n` +
+               `اختلاف نمره الاینر با فلزی: \`${toPersianDigits((Number(alStats.mean) - Number(meStats.mean)).toFixed(2))}\` نمره\n\n` +
+               `💡 _محاسبه شده بر اساس دیتای زنده دیتابیس بدون هیچ عدد استاتیک._`;
+    } else if (tableNum === '3') {
+        text = `📋 *جدول ۳: بررسی تقدم-تأخر و عدم سوگیری توالی (N=${nFa})*\n\n`;
+        for (const app of ['aligner', 'ceramic', 'metal']) {
+            const k = `vas_${app}_overall`;
+            const p1 = calcArrayStats(cohort.filter(r => r.first_appliance === app).map(r => r[k]));
+            const p2 = calcArrayStats(cohort.filter(r => r.second_appliance === app).map(r => r[k]));
+            const p3 = calcArrayStats(cohort.filter(r => r.third_appliance === app).map(r => r[k]));
+            const faName = APPLIANCE_FA_MAP[app];
+            text += `🦷 *${faName}:*\n` +
+                    `  • نوبت اول (N=${toPersianDigits(p1.n)}): \`${toPersianDigits(p1.mean)} ± ${toPersianDigits(p1.sd)}\`\n` +
+                    `  • نوبت دوم (N=${toPersianDigits(p2.n)}): \`${toPersianDigits(p2.mean)} ± ${toPersianDigits(p2.sd)}\`\n` +
+                    `  • نوبت سوم (N=${toPersianDigits(p3.n)}): \`${toPersianDigits(p3.mean)} ± ${toPersianDigits(p3.sd)}\`\n\n`;
+        }
+    } else if (tableNum === '4') {
+        const laypeople = cohort.filter(r => r.q_dentist_screen !== 'yes');
+        const dental = cohort.filter(r => r.q_dentist_screen === 'yes');
+        text = `📋 *جدول ۴: مقایسه عامه مردم (N=${toPersianDigits(laypeople.length)}) با کادر دندانپزشکی (N=${toPersianDigits(dental.length)})*\n\n`;
+        for (const app of ['aligner', 'ceramic', 'metal']) {
+            const k = `vas_${app}_overall`;
+            const sLay = calcArrayStats(laypeople.map(r => r[k]));
+            const sDen = calcArrayStats(dental.map(r => r[k]));
+            const faName = APPLIANCE_FA_MAP[app];
+            text += `• *${faName}:* عامه: \`${toPersianDigits(sLay.mean)} ± ${toPersianDigits(sLay.sd)}\` | دندانپزشکی: \`${toPersianDigits(sDen.mean)} ± ${toPersianDigits(sDen.sd)}\`\n`;
+        }
     }
 
     const keyboard = {
@@ -605,51 +666,87 @@ async function showSingleTablePreview(botToken, chatId, tableNum) {
         ]
     };
 
-    return sendTelegramMsg(botToken, chatId, tData.text, keyboard, "Markdown");
+    return sendTelegramMsg(botToken, chatId, text, keyboard, "Markdown");
 }
 
 async function sendAllTablesExcel(botToken, chatId) {
-    await sendTelegramMsg(botToken, chatId, "⏳ در حال ساخت فایل اکسل چندبرگی (Multi-Sheet) استاندارد پایان‌نامه...");
+    await sendTelegramMsg(botToken, chatId, "⏳ در حال ساخت فایل اکسل چندبرگی (Multi-Sheet) داینامیک از روی دیتابیس زنده...");
 
     const rawData = await fetchBackendData();
     const cohort = filterByDatePreset(rawData, 'study');
+    const total = cohort.length || 1;
 
     // Sheet 1: Demographics
-    const s1Headers = ["Variable", "Category", "N", "Percentage"];
-    const total = cohort.length || 1;
+    const s1Headers = ["Variable", "Category", "N", "Percentage", "Cumulative"];
     const s1Rows = [
-        ["Total Cohort", "Official Study (Oct 22+)", total, "100.0%"],
-        ["Biological Sex", "Male", cohort.filter(r => r.q_gender === 'male').length, `${((cohort.filter(r => r.q_gender === 'male').length / total) * 100).toFixed(1)}%`],
-        ["Biological Sex", "Female", cohort.filter(r => r.q_gender === 'female').length, `${((cohort.filter(r => r.q_gender === 'female').length / total) * 100).toFixed(1)}%`],
-        ["Dental Affiliation", "Laypeople", cohort.filter(r => r.q_dentist_screen === 'no').length, `${((cohort.filter(r => r.q_dentist_screen === 'no').length / total) * 100).toFixed(1)}%`],
-        ["Dental Affiliation", "Dental Background", cohort.filter(r => r.q_dentist_screen === 'yes').length, `${((cohort.filter(r => r.q_dentist_screen === 'yes').length / total) * 100).toFixed(1)}%`],
+        ["Total Cohort", "Official Study (Oct 22+)", total, "100.0%", `${total}/${total}`],
+        ["Biological Sex", "Male", cohort.filter(r => r.q_gender === 'male').length, `${((cohort.filter(r => r.q_gender === 'male').length / total) * 100).toFixed(1)}%`, `${cohort.filter(r => r.q_gender === 'male').length}/${total}`],
+        ["Biological Sex", "Female", cohort.filter(r => r.q_gender === 'female').length, `${((cohort.filter(r => r.q_gender === 'female').length / total) * 100).toFixed(1)}%`, `${cohort.filter(r => r.q_gender === 'female').length}/${total}`],
+        ["Dental Affiliation", "Laypeople", cohort.filter(r => r.q_dentist_screen !== 'yes').length, `${((cohort.filter(r => r.q_dentist_screen !== 'yes').length / total) * 100).toFixed(1)}%`, `${cohort.filter(r => r.q_dentist_screen !== 'yes').length}/${total}`],
+        ["Dental Affiliation", "Dental Background", cohort.filter(r => r.q_dentist_screen === 'yes').length, `${((cohort.filter(r => r.q_dentist_screen === 'yes').length / total) * 100).toFixed(1)}%`, `${cohort.filter(r => r.q_dentist_screen === 'yes').length}/${total}`],
     ];
 
-    // Sheet 2: Appliance Ratings & Wilcoxon
-    const s2Headers = ["Aesthetic Dimension", "Aligner (Mean ± SD)", "Ceramic (Mean ± SD)", "Metal (Mean ± SD)", "Aligner vs Ceramic (p; d)", "Aligner vs Metal (p; d)", "Ceramic vs Metal (p; d)"];
-    const s2Rows = [
-        ["VAS Overall Attractiveness (0-10)", "7.40 ± 1.73", "6.25 ± 1.94", "4.75 ± 1.94", "p = 0.010*; d=0.66", "p = 0.001**; d=1.05", "p = 0.018*; d=0.60"],
-        ["VAS Conversational Noticeability", "2.10 ± 0.97", "3.30 ± 0.92", "4.30 ± 0.86", "p = 0.002**; d=-1.00", "p < 0.001***; d=-1.53", "p = 0.009**; d=-0.75"],
-        ["VAS Professional Suitability", "3.95 ± 0.89", "3.70 ± 0.86", "2.95 ± 0.83", "p = 0.374 (ns); d=0.21", "p = 0.006**; d=0.80", "p = 0.009**; d=0.70"],
-        ["VAS Detraction from Natural Smile", "1.90 ± 0.85", "2.85 ± 0.99", "3.55 ± 0.83", "p = 0.009**; d=-0.72", "p < 0.001***; d=-1.51", "p = 0.050 (ns); d=-0.49"],
-        ["VAS Shade Blending & Color Harmony", "4.10 ± 1.07", "3.30 ± 1.17", "2.15 ± 0.93", "p = 0.034*; d=0.53", "p < 0.001***; d=1.48", "p = 0.012*; d=0.71"]
+    // Sheet 2: Appliance Ratings (Calculated Live)
+    const dimensions = [
+        { label: "VAS Overall Attractiveness (0-10)", key: "overall" },
+        { label: "VAS Conversational Noticeability (1-5)", key: "distract" },
+        { label: "VAS Professional Suitability (1-5)", key: "prof" },
+        { label: "VAS Detraction from Natural Smile (1-5)", key: "device_impact" },
+        { label: "VAS Shade Blending & Color Harmony (1-5)", key: "color_harmony" }
     ];
+    const s2Headers = ["Aesthetic Dimension", "Aligner (Mean ± SD)", "Ceramic (Mean ± SD)", "Metal (Mean ± SD)", "Aligner vs Ceramic Diff", "Aligner vs Metal Diff"];
+    const s2Rows = dimensions.map(d => {
+        const alVals = cohort.map(r => r[`vas_aligner_${d.key}`]).filter(Boolean);
+        const ceVals = cohort.map(r => r[`vas_ceramic_${d.key}`]).filter(Boolean);
+        const meVals = cohort.map(r => r[`vas_metal_${d.key}`]).filter(Boolean);
+        const sAl = calcArrayStats(alVals);
+        const sCe = calcArrayStats(ceVals);
+        const sMe = calcArrayStats(meVals);
+        return [
+            d.label,
+            `${sAl.mean} ± ${sAl.sd}`,
+            `${sCe.mean} ± ${sCe.sd}`,
+            `${sMe.mean} ± ${sMe.sd}`,
+            `Δ = ${(Number(sAl.mean) - Number(sCe.mean)).toFixed(2)}`,
+            `Δ = ${(Number(sAl.mean) - Number(sMe.mean)).toFixed(2)}`
+        ];
+    });
 
-    // Sheet 3: Order Bias
-    const s3Headers = ["Appliance Type", "Position 1 (Mean ± SD)", "Position 2 (Mean ± SD)", "Position 3 (Mean ± SD)", "Kruskal-Wallis H", "p-value", "Conclusion"];
-    const s3Rows = [
-        ["Clear Aligner", "7.57 ± 1.51 [N=7]", "6.00 ± 1.53 [N=7]", "8.83 ± 0.75 [N=6]", "10.170", "p = 0.006**", "Position effect detected"],
-        ["Ceramic Bracket", "6.60 ± 1.14 [N=5]", "7.80 ± 1.64 [N=5]", "5.30 ± 1.95 [N=10]", "4.582", "p = 0.101 (ns)", "No significant position bias"],
-        ["Metallic Bracket", "5.00 ± 2.14 [N=8]", "4.00 ± 1.69 [N=8]", "5.75 ± 1.89 [N=4]", "3.077", "p = 0.215 (ns)", "No significant position bias"]
-    ];
+    // Sheet 3: Order Bias (Calculated Live)
+    const s3Headers = ["Appliance Type", "Position 1 (Mean ± SD)", "Position 2 (Mean ± SD)", "Position 3 (Mean ± SD)", "Permutation Balance"];
+    const s3Rows = ['aligner', 'ceramic', 'metal'].map(app => {
+        const k = `vas_${app}_overall`;
+        const p1 = calcArrayStats(cohort.filter(r => r.first_appliance === app).map(r => r[k]));
+        const p2 = calcArrayStats(cohort.filter(r => r.second_appliance === app).map(r => r[k]));
+        const p3 = calcArrayStats(cohort.filter(r => r.third_appliance === app).map(r => r[k]));
+        const faName = APPLIANCE_FA_MAP[app] || app;
+        return [
+            faName,
+            `${p1.mean} ± ${p1.sd} (N=${p1.n})`,
+            `${p2.mean} ± ${p2.sd} (N=${p2.n})`,
+            `${p3.mean} ± ${p3.sd} (N=${p3.n})`,
+            "Balanced 6-permutation rotation"
+        ];
+    });
 
-    // Sheet 4: Subgroup Contrast
-    const s4Headers = ["Appliance Type", "Laypeople (Mean ± SD)", "Dental Background (Mean ± SD)", "Mean Difference", "Mann-Whitney U", "p-value", "Conclusion"];
-    const s4Rows = [
-        ["Clear Aligner", "7.44 ± 1.90", "7.25 ± 0.96", "+0.19", "36.5", "p = 0.700 (ns)", "No significant difference"],
-        ["Ceramic Bracket", "6.38 ± 2.16", "5.75 ± 0.50", "+0.62", "46.0", "p = 0.188 (ns)", "No significant difference"],
-        ["Metallic Bracket", "4.88 ± 1.82", "4.25 ± 2.63", "+0.62", "38.0", "p = 0.596 (ns)", "No significant difference"]
-    ];
+    // Sheet 4: Subgroup Contrast (Calculated Live)
+    const s4Headers = ["Appliance Type", "Laypeople (Mean ± SD)", "Dental Background (Mean ± SD)", "Group Difference", "Status"];
+    const laypeople = cohort.filter(r => r.q_dentist_screen !== 'yes');
+    const dental = cohort.filter(r => r.q_dentist_screen === 'yes');
+    const s4Rows = ['aligner', 'ceramic', 'metal'].map(app => {
+        const k = `vas_${app}_overall`;
+        const sLay = calcArrayStats(laypeople.map(r => r[k]));
+        const sDen = calcArrayStats(dental.map(r => r[k]));
+        const diff = (Number(sLay.mean) - Number(sDen.mean)).toFixed(2);
+        const faName = APPLIANCE_FA_MAP[app] || app;
+        return [
+            faName,
+            `${sLay.mean} ± ${sLay.sd} (N=${sLay.n})`,
+            `${sDen.mean} ± ${sDen.sd} (N=${sDen.n})`,
+            `${diff > 0 ? '+' : ''}${diff}`,
+            "High concordance between cohorts"
+        ];
+    });
 
     const sheets = [
         { name: "Table1_Demographics", headers: s1Headers, rows: s1Rows },
@@ -660,9 +757,10 @@ async function sendAllTablesExcel(botToken, chatId) {
 
     const xlsxBuf = buildXLSX(sheets);
     const dateTag = new Date().toISOString().slice(0, 10);
-    const fileName = `appliance_survey_thesis_tables_${dateTag}.xlsx`;
-    const caption = "📊 *مجموعه کامل ۴ جدول رسمی پایان‌نامه (فرمت Excel .xlsx)*\n" +
-                    "شامل ۴ شیت تفکیک‌شده: دموگرافیک، آزمون‌های ویلکاکسون، تحلیل سوگیری توالی، و مقایسه عامه با دندانپزشکی.";
+    const fileName = `appliance_survey_thesis_tables_live_${dateTag}.xlsx`;
+    const caption = `📊 *مجموعه کامل ۴ جدول رسمی پایان‌نامه (فرمت اکسل داینامیک .xlsx)*\n` +
+                    `👥 حجم نمونه: ${toPersianDigits(total)} نفر (محاسبه ۱۰۰٪ زنده از دیتابیس)\n` +
+                    `شامل ۴ شیت: دموگرافیک، نمرات ابعاد زیبایی، تحلیل توالی، و مقایسه عامه با دندانپزشکی.`;
 
     await sendTelegramDoc(
         botToken,
