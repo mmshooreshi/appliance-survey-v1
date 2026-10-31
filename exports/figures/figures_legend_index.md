@@ -73,3 +73,38 @@
 
 ---
 
+### Figure 11: Linear Regression & Correlation: Color Harmony vs Overall Attractiveness
+![Linear Regression & Correlation: Color Harmony vs Overall Attractiveness](fig11_color_harmony_regression.png)
+
+**Legend & Statistical Interpretation:** Multi-panel scatter plot with OLS linear regression fit and 95% confidence bands evaluating the exact visual contribution of color harmony / shade blending to overall smile attractiveness.
+
+---
+
+### Figure 12: Composite Personal Adoption & Social Readiness Index
+![Composite Personal Adoption & Social Readiness Index](fig12_personal_adoption_composite.png)
+
+**Legend & Statistical Interpretation:** Boxplots with overlaid individual jittered scores, mean diamonds, and Wilcoxon signed-rank tests for a composite index combining workplace comfort and social event willingness.
+
+---
+
+### Figure 13: Age Cohort Stratification of Appliance Attractiveness Ratings
+![Age Cohort Stratification of Appliance Attractiveness Ratings](fig13_age_stratification.png)
+
+**Legend & Statistical Interpretation:** Clustered bar chart comparing young adults (18–24) versus mature working adults (25+) across appliance modalities.
+
+---
+
+### Figure 14: Subgroup Contrast: Laypeople vs Dental-Affiliated Evaluators
+![Subgroup Contrast: Laypeople vs Dental-Affiliated Evaluators](fig14_layperson_vs_dentist.png)
+
+**Legend & Statistical Interpretation:** Clustered bar comparison with Mann-Whitney U test p-values testing whether dental professionals/students evaluate appliance aesthetics more critically than the general public.
+
+---
+
+### Figure 15: Cumulative Acceptance Curves Across Aesthetic Thresholds (CDF-Style)
+![Cumulative Acceptance Curves Across Aesthetic Thresholds (CDF-Style)](fig15_cumulative_acceptance_cdf.png)
+
+**Legend & Statistical Interpretation:** Step/survival-style curves showing the percentage of respondents rating each appliance at or above escalating aesthetic cutoff levels (VAS ≥ 1 to 10), marking clinical acceptability and high aesthetic standards.
+
+---
+

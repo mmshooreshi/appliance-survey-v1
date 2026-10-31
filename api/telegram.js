@@ -1,6 +1,8 @@
 // api/telegram.js
 // Handles both survey submission notifications and interactive Telegram Bot commands
 
+import { buildXLSX, buildXLSXFromObjects } from './xlsx_builder.js';
+
 const BACKEND_URL = "http://91.212.174.223:9090/api/data";
 const DEFAULT_STUDY_START = "2026-10-22";
 
@@ -9,6 +11,13 @@ const APPLIANCE_FA_MAP = {
     ceramic: "براکت سرامیکی",
     metal: "براکت فلزی"
 };
+
+// Helper: Convert digits to Persian numerals
+function toPersianDigits(str) {
+    if (str === null || str === undefined) return '';
+    const faDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    return String(str).replace(/[0-9]/g, w => faDigits[+w]);
+}
 
 // Helper to escape CSV values
 const escapeCSV = (val) => `"${String(val !== undefined && val !== null ? val : '').replace(/"/g, '""')}"`;
@@ -155,11 +164,11 @@ async function sendTelegramMsg(botToken, chatId, text, replyMarkup = null, parse
 }
 
 // Send Telegram Document helper
-async function sendTelegramDoc(botToken, chatId, fileContent, fileName, caption = '') {
+async function sendTelegramDoc(botToken, chatId, fileContent, fileName, caption = '', mimeType = 'text/csv;charset=utf-8;') {
     const formData = new FormData();
     formData.append('chat_id', chatId);
     if (caption) formData.append('caption', caption);
-    const blob = new Blob([fileContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([fileContent], { type: mimeType });
     formData.append('document', blob, fileName);
 
     return fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
@@ -213,11 +222,21 @@ export default async function handler(req, res) {
         }
 
         const csvString = generateCSV([responses]);
+        const xlsxBuf = buildXLSXFromObjects([responses], 'SurveyResponse');
+        const ts = Date.now();
 
         try {
             const sendPromises = authorizedChatIds.map(async (chatId) => {
                 await sendTelegramMsg(botToken, chatId, messageText);
-                await sendTelegramDoc(botToken, chatId, csvString, `survey_${Date.now()}.csv`, '📁 فایل خروجی پاسخ‌نامه');
+                await sendTelegramDoc(botToken, chatId, csvString, `survey_${ts}.csv`, '📁 فایل خروجی پاسخ‌نامه (CSV)');
+                await sendTelegramDoc(
+                    botToken,
+                    chatId,
+                    xlsxBuf,
+                    `survey_${ts}.xlsx`,
+                    '📊 فایل خروجی پاسخ‌نامه (Excel .xlsx)',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                );
                 return true;
             });
             await Promise.all(sendPromises);
@@ -278,13 +297,28 @@ export default async function handler(req, res) {
             await showDateSelectedMenu(botToken, senderChatId, preset);
         } else if (data.startsWith('export_csv_')) {
             const preset = data.replace('export_csv_', '');
-            await sendExportCSV(botToken, senderChatId, preset, 'all');
+            await sendExportFiles(botToken, senderChatId, preset, 'all');
         } else if (data.startsWith('export_demo_')) {
             const preset = data.replace('export_demo_', '');
-            await sendExportCSV(botToken, senderChatId, preset, 'demo');
+            await sendExportFiles(botToken, senderChatId, preset, 'demo');
         } else if (data.startsWith('export_vas_')) {
             const preset = data.replace('export_vas_', '');
-            await sendExportCSV(botToken, senderChatId, preset, 'vas');
+            await sendExportFiles(botToken, senderChatId, preset, 'vas');
+        } else if (data.startsWith('export_fig_xlsx_')) {
+            const figKey = data.replace('export_fig_xlsx_', '');
+            await sendFigureData(botToken, senderChatId, figKey, 'xlsx');
+        } else if (data.startsWith('export_fig_csv_')) {
+            const figKey = data.replace('export_fig_csv_', '');
+            await sendFigureData(botToken, senderChatId, figKey, 'csv');
+        } else if (data === 'menu_tables') {
+            await showThesisTablesMenu(botToken, senderChatId);
+        } else if (data.startsWith('show_table_')) {
+            const tableNum = data.replace('show_table_', '');
+            await showSingleTablePreview(botToken, senderChatId, tableNum);
+        } else if (data === 'export_all_tables_xlsx') {
+            await sendAllTablesExcel(botToken, senderChatId);
+        } else if (data === 'export_all_tables_md') {
+            await sendAllTablesMarkdown(botToken, senderChatId);
         } else if (data === 'menu_thesis_metrics') {
             await showThesisComparison(botToken, senderChatId, 'study');
         } else if (data === 'menu_order_bias') {
@@ -320,6 +354,8 @@ export default async function handler(req, res) {
             await showMainMenu(botToken, senderChatId);
         } else if (text === '/figures' || text === '/graphs' || text === '/plots' || text === '/bmj') {
             await showFiguresGallery(botToken, senderChatId);
+        } else if (text === '/tables' || text === '/table') {
+            await showThesisTablesMenu(botToken, senderChatId);
         } else if (text === '/stats') {
             await showStats(botToken, senderChatId, 'study');
         } else if (text === '/export') {
@@ -341,106 +377,30 @@ export default async function handler(req, res) {
 // Interactive Bot UI Screens
 // -----------------------------------------------------------------------------
 
-const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/mmshooreshi/appliance-survey-v1/main/exports/figures/";
-
-const ACADEMIC_FIGURES = {
-    fig1: {
-        file: "fig01_vas_overall_attractiveness.png",
-        title: "شکل ۱: جذابیت کلی لبخند (VAS + Wilcoxon)",
-        caption: "📊 *شکل ۱: ارزیابی جذابیت کلی لبخند (VAS Overall)*\n\n" +
-            "📌 *نوع نمودار:* Violin plot + نقاط خام + فاصله اطمینان ۹۵٪\n" +
-            "🧪 *آزمون آماری:* Wilcoxon Signed-Rank Test (دو دامنه)\n" +
-            "• الاینر شفاف vs براکت سرامیکی: `p < 0.05*` (سایز اثر: d = ۰٫۴۵)\n" +
-            "• الاینر شفاف vs براکت فلزی: `p < 0.001***` (سایز اثر: d = ۱٫۱۲)\n" +
-            "• براکت سرامیکی vs براکت فلزی: `p < 0.01**` (سایز اثر: d = ۰٫۷۲)\n\n" +
-            "💡 *تفسیر:* الاینر شفاف به طور معناداری بالاترین جذابیت زیبایی‌شناختی را کسب کرده است."
-    },
-    fig2: {
-        file: "fig02_hardware_noticeability_detraction.png",
-        title: "شکل ۲: جلب توجه در مقایسه با تخریب زیبایی",
-        caption: "📊 *شکل ۲: تمایز بین جلب توجه و تخریب زیبایی لبخند*\n\n" +
-            "📌 پنل A: میزان جلب توجه دستگاه در مکالمه\n" +
-            "📌 پنل B: میزان کاستن از زیبایی طبیعی لبخند\n" +
-            "💡 براکت‌های فلزی بیشترین تخریب را بر جذابیت لبخند دارند، در حالی که الاینر کمترین جلب توجه را ایجاد می‌کند."
-    },
-    fig3: {
-        file: "fig03_psychometric_halo_radar.png",
-        title: "شکل ۳: رادار صفات ۷ گانه روانشناختی (اثر هاله)",
-        caption: "🧠 *شکل ۳: رادار ۷ بعدی صفات روانشناختی (Halo Effect Battery)*\n\n" +
-            "مقایسه همزمان الاینر، سرامیکی و فلزی در ۷ متغیر:\n" +
-            "۱. هوش ۲. بهداشت دهان ۳. جذابیت ۴. صداقت و اعتماد ۵. محبوبیت اجتماعی ۶. سطح اقتصادی ۷. اعتمادبه‌نفس\n\n" +
-            "💡 الاینر در تمامی ابعاد روانشناختی برتری قاطعی نسبت به براکت فلزی نشان می‌دهد."
-    },
-    fig4: {
-        file: "fig04_halo_effect_forest_plot.png",
-        title: "شکل ۴: نمودار فارست سایز اثر (Cohen's d)",
-        caption: "🌲 *شکل ۴: نمودار فارست سایز اثر استانداردشده (Cohen's d)*\n\n" +
-            "میزان برتری الاینر و براکت سرامیکی نسبت به مبنای براکت فلزی به همراه فاصله اطمینان ۹۵٪.\n" +
-            "• خط چین صفر: عدم تفاوت با براکت فلزی\n" +
-            "• نقاط سمت راست: برتری بر براکت فلزی (سایز اثرهای متوسط تا بزرگ)."
-    },
-    fig5: {
-        file: "fig05_workplace_acceptability.png",
-        title: "شکل ۵: تناسب با محیط کار و احساس خجالت",
-        caption: "💼 *شکل ۵: پذیرش شغلی و احساس راحتی فردی*\n\n" +
-            "📌 پنل A: تناسب لبخند برای محیط رسمی و کاری\n" +
-            "📌 پنل B: میزان احساس خجالت در صورت استفاده شخصی در محل کار"
-    },
-    fig6: {
-        file: "fig06_sequence_bias_carryover.png",
-        title: "شکل ۶: بررسی اثر ترتیب (Order Effect / Carryover)",
-        caption: "🔄 *شکل ۶: بررسی اثر تقدم و تأخر (Order Bias Analysis)*\n\n" +
-            "بررسی نمرات جذابیت هر دستگاه بسته به اینکه نوبت ۱، ۲ یا ۳ دیده شده است.\n" +
-            "💡 عدم وجود تداخل شدید نشان‌دهنده خنثی شدن اثر سوگیری توالی با رندوم‌سازی است (سند علمی دفاع پایان‌نامه)."
-    },
-    fig7: {
-        file: "fig07_permutation_uniformity.png",
-        title: "شکل ۷: تعادل رندوم‌سازی ۶ حالت توالی",
-        caption: "📊 *شکل ۷: توزیع ۶ حالت جایگشت تصادفی نمایش دستگاه‌ها*\n\n" +
-            "تایید بالانس بودن و تخصیص متوازن ترتیبات بین شرکت‌کنندگان پژوهش."
-    },
-    fig8: {
-        file: "fig08_gender_stratified_evaluation.png",
-        title: "شکل ۸: تفکیک بر حسب جنسیت ارزیابی‌کننده",
-        caption: "👫 *شکل ۸: مقایسه دیدگاه ارزیابی‌کنندگان زن در برابر مرد*\n\n" +
-            "بررسی اینکه آیا زنان و مردان معیارهای متفاوتی برای دستگاه‌های ارتودنسی قائل هستند یا خیر."
-    },
-    fig9: {
-        file: "fig09_orthodontic_history_stratification.png",
-        title: "شکل ۹: تفکیک بر حسب سابقه قبلی ارتودنسی",
-        caption: "🦷 *شکل ۹: اثر تجربه قبلی درمان ارتودنسی بر قضاوت زیبایی*\n\n" +
-            "مقایسه دیدگاه افراد با سابقه براکت ثابت در مقایسه با افراد بدون سابقه درمان."
-    },
-    fig10: {
-        file: "fig10_spearman_correlation_matrix.png",
-        title: "شکل ۱۰: ماتریس همبستگی اسپیرمن (Heatmap)",
-        caption: "🔥 *شکل ۱۰: نقشه حرارتی ماتریس همبستگی اسپیرمن*\n\n" +
-            "ارتباط بین اولویت‌های زیبایی شخصی افراد و نمراتی که به دستگاه‌های مختلف اختصاص داده‌اند."
-    }
-};
+import { ACADEMIC_FIGURES, THESIS_TABLES_DATA, GITHUB_RAW_BASE } from './academic_figures_meta.js';
 
 async function showFiguresGallery(botToken, chatId) {
     const text = 
-        "🎨 *گالری نمودارهای آکادمیک سطح ژورنال (BMJ / Lancet Guidelines)*\n\n" +
-        "این نمودارها با رزولوشن ۳۰۰ DPI، آزمون‌های آماری ناپارامتری (Wilcoxon)، فاصله‌های اطمینان ۹۵٪ و سایز اثر کوهن (Cohen's d) برای پایان‌نامه شما آماده شده‌اند.\n\n" +
-        "نمودار مورد نظر خود را برای مشاهده فوری انتخاب کنید:";
+        "🎨 *گالری جامع ۱۵ نمودار آکادمیک سطح ژورنال (BMJ / Lancet Guidelines)*\n\n" +
+        "این مجموعه کامل با رزولوشن ۳۰۰ DPI، آزمون‌های آماری ناپارامتری (Wilcoxon)، فاصله‌های اطمینان ۹۵٪، رگرسیون، منحنی‌های CDF و سایز اثر کوهن (Cohen's d) برای پایان‌نامه شما آماده است.\n\n" +
+        "نمودار مورد نظر خود را انتخاب کنید:";
 
     const keyboard = {
         inline_keyboard: [
             [
-                { text: "🦷 شکل ۱: جذابیت کلی (VAS + Wilcoxon)", callback_data: "show_fig_fig1" },
+                { text: "🦷 شکل ۱: جذابیت کلی (Wilcoxon)", callback_data: "show_fig_fig1" },
                 { text: "👁️ شکل ۲: جلب توجه و تخریب لبخند", callback_data: "show_fig_fig2" }
             ],
             [
-                { text: "🕸️ شکل ۳: رادار ۷ صفت روانشناختی", callback_data: "show_fig_fig3" },
-                { text: "🌲 شکل ۴: فارست پلات سایز اثر (Cohen d)", callback_data: "show_fig_fig4" }
+                { text: "🧠 شکل ۳: رادار ۷ صفت روانشناختی", callback_data: "show_fig_fig3" },
+                { text: "🌲 شکل ۴: فارست پلات اثر هاله (d)", callback_data: "show_fig_fig4" }
             ],
             [
-                { text: "💼 شکل ۵: پذیرش شغلی و احساس خجالت", callback_data: "show_fig_fig5" },
+                { text: "💼 شکل ۵: پذیرش شغلی و خجالت", callback_data: "show_fig_fig5" },
                 { text: "🔄 شکل ۶: بررسی اثر ترتیب (تز)", callback_data: "show_fig_fig6" }
             ],
             [
-                { text: "📊 شکل ۷: تعادل جایگشت‌های تصادفی", callback_data: "show_fig_fig7" },
+                { text: "📊 شکل ۷: تعادل ۶ جایگشت رندوم", callback_data: "show_fig_fig7" },
                 { text: "👫 شکل ۸: تفکیک بر حسب جنسیت", callback_data: "show_fig_fig8" }
             ],
             [
@@ -448,7 +408,21 @@ async function showFiguresGallery(botToken, chatId) {
                 { text: "🔥 شکل ۱۰: نقشه همبستگی اسپیرمن", callback_data: "show_fig_fig10" }
             ],
             [
-                { text: "📦 ارسال تمامی ۱۰ نمودار به صورت یکجا", callback_data: "send_all_figures" }
+                { text: "📈 شکل ۱۱: رگرسیون هارمونی رنگ", callback_data: "show_fig_fig11" },
+                { text: "🎯 شکل ۱۲: شاخص ترکیبی تمایل فردی", callback_data: "show_fig_fig12" }
+            ],
+            [
+                { text: "📊 شکل ۱۳: تحلیل طبقات سنی", callback_data: "show_fig_fig13" },
+                { text: "👨‍⚕️ شکل ۱۴: عامه مردم vs دندانپزشکی", callback_data: "show_fig_fig14" }
+            ],
+            [
+                { text: "📉 شکل ۱۵: منحنی‌های پذیرش تجمعی (CDF)", callback_data: "show_fig_fig15" }
+            ],
+            [
+                { text: "📋 مشاهده جداول پایان‌نامه (Tables 1-4)", callback_data: "menu_tables" }
+            ],
+            [
+                { text: "📦 ارسال تمامی ۱۵ نمودار به صورت یکجا", callback_data: "send_all_figures" }
             ],
             [
                 { text: "🔙 بازگشت به منوی اصلی", callback_data: "menu_main" }
@@ -466,10 +440,22 @@ async function sendAcademicFigure(botToken, chatId, figKey) {
     }
 
     const photoUrl = `${GITHUB_RAW_BASE}${fig.file}`;
+    const navRow = [];
+    if (fig.prev) navRow.push({ text: "⬅️ شکل قبلی", callback_data: `show_fig_${fig.prev}` });
+    if (fig.next) navRow.push({ text: "➡️ شکل بعدی", callback_data: `show_fig_${fig.next}` });
+
     const keyboard = {
         inline_keyboard: [
             [
-                { text: "🎨 مشاهده سایر نمودارها", callback_data: "menu_figures_gallery" },
+                { text: "📊 دریافت اکسل داده‌های این شکل (XLSX)", callback_data: `export_fig_xlsx_${figKey}` },
+                { text: "📄 دریافت CSV داده‌های این شکل", callback_data: `export_fig_csv_${figKey}` }
+            ],
+            ...(navRow.length > 0 ? [navRow] : []),
+            [
+                { text: "🎨 گالری کامل ۱۵ نمودار", callback_data: "menu_figures_gallery" },
+                { text: "📋 جداول پایان‌نامه", callback_data: "menu_tables" }
+            ],
+            [
                 { text: "🔙 منوی اصلی", callback_data: "menu_main" }
             ]
         ]
@@ -490,13 +476,219 @@ async function sendAcademicFigure(botToken, chatId, figKey) {
     const data = await res.json();
     if (!data.ok) {
         console.error("sendPhoto error:", data);
-        // Fallback message with link
         return sendTelegramMsg(botToken, chatId, `${fig.caption}\n\n🔗 [مشاهده تصویر با کیفیت بالا](${photoUrl})`, keyboard, "Markdown");
     }
 }
 
+async function sendFigureData(botToken, chatId, figKey, format = 'xlsx') {
+    const fig = ACADEMIC_FIGURES[figKey];
+    if (!fig) {
+        return sendTelegramMsg(botToken, chatId, "⚠️ اطلاعات این نمودار یافت نشد.");
+    }
+
+    await sendTelegramMsg(botToken, chatId, `⏳ در حال آماده‌سازی فایل ${format.toUpperCase()} داده‌های مربوط به ${fig.title}...`);
+
+    const rawData = await fetchBackendData();
+    const cohort = filterByDatePreset(rawData, 'study');
+
+    const vars = fig.vars || ['id', 'timestamp', 'vas_aligner_overall', 'vas_ceramic_overall', 'vas_metal_overall'];
+    const filteredRows = cohort.map(r => {
+        const item = {};
+        for (const v of vars) {
+            item[v] = r[v] !== undefined ? r[v] : '';
+        }
+        return item;
+    });
+
+    const figNum = figKey.replace('fig', '');
+    const dateTag = new Date().toISOString().slice(0, 10);
+    const fileName = `figure_${figNum}_dataset_${dateTag}.${format}`;
+    const nFa = toPersianDigits(filteredRows.length);
+    const caption = `📊 داده‌های اختصاصی ${fig.title}\n` +
+                    `📌 متغیرها: ${vars.join(', ')}\n` +
+                    `👥 تعداد شرکت‌کنندگان: ${nFa} نفر (داده‌های رسمی)\n` +
+                    `🎓 بخش پایان‌نامه: ${fig.thesis_target}`;
+
+    if (format === 'xlsx') {
+        const xlsxBuf = buildXLSXFromObjects(filteredRows, `Figure_${figNum}`, vars);
+        await sendTelegramDoc(
+            botToken,
+            chatId,
+            xlsxBuf,
+            fileName,
+            caption,
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+    } else {
+        const csvString = generateCSV(filteredRows, 'all');
+        await sendTelegramDoc(botToken, chatId, csvString, fileName, caption, 'text/csv;charset=utf-8;');
+    }
+
+    const nextNav = {
+        inline_keyboard: [
+            [
+                { text: `👁️ بازگشت به ${fig.title}`, callback_data: `show_fig_${figKey}` },
+                { text: "🎨 گالری کامل نمودارها", callback_data: "menu_figures_gallery" }
+            ],
+            [
+                { text: "🔙 منوی اصلی", callback_data: "menu_main" }
+            ]
+        ]
+    };
+    return sendTelegramMsg(botToken, chatId, "✅ فایل داده‌ها با موفقیت ارسال گردید.", nextNav, "Markdown");
+}
+
+async function showThesisTablesMenu(botToken, chatId) {
+    const text = 
+        "📋 *جداول استاندارد پایان‌نامه (APA 7th / BMJ Recommendations)*\n\n" +
+        "این ۴ جدول دقیقاً بر اساس الزامات نگارش پایان‌نامه دندانپزشکی استخراج شده و آزمون‌های ناپارامتری (Wilcoxon، Kruskal-Wallis و Mann-Whitney) را پوشش می‌دهند:\n\n" +
+        "۱. جدول ۱: متغیرهای دموگرافیک و پایه ارزیابی‌کنندگان\n" +
+        "۲. جدول ۲: مقایسه ۵ بعد نمرات زیبایی و آزمون‌های ویلکاکسون\n" +
+        "۳. جدول ۳: اعتبارسنجی خنثی بودن ترتیب و آزمون کروسکال-والیس\n" +
+        "۴. جدول ۴: مقایسه عامه مردم با کادر دندانپزشکی\n\n" +
+        "یک گزینه را انتخاب کنید:";
+
+    const keyboard = {
+        inline_keyboard: [
+            [
+                { text: "📊 دانلود فایل کامل اکسل (۴ شیت مجزا)", callback_data: "export_all_tables_xlsx" }
+            ],
+            [
+                { text: "📝 دانلود متن کامل جداول (Markdown/Word)", callback_data: "export_all_tables_md" }
+            ],
+            [
+                { text: "👁️ مشاهده جدول ۱ (دموگرافیک)", callback_data: "show_table_1" },
+                { text: "👁️ مشاهده جدول ۲ (نمرات زیبایی)", callback_data: "show_table_2" }
+            ],
+            [
+                { text: "👁️ مشاهده جدول ۳ (اثر ترتیب)", callback_data: "show_table_3" },
+                { text: "👁️ مشاهده جدول ۴ (مردم vs دندانپزشکی)", callback_data: "show_table_4" }
+            ],
+            [
+                { text: "🎨 مشاهده گالری ۱۵ نمودار", callback_data: "menu_figures_gallery" },
+                { text: "🔙 منوی اصلی", callback_data: "menu_main" }
+            ]
+        ]
+    };
+
+    return sendTelegramMsg(botToken, chatId, text, keyboard, "Markdown");
+}
+
+async function showSingleTablePreview(botToken, chatId, tableNum) {
+    const tableKey = `t${tableNum}`;
+    const tData = THESIS_TABLES_DATA[tableKey];
+    if (!tData) {
+        return sendTelegramMsg(botToken, chatId, "⚠️ جدول مورد نظر یافت نشد.");
+    }
+
+    const keyboard = {
+        inline_keyboard: [
+            [
+                { text: "📊 دریافت کل جداول در اکسل (.xlsx)", callback_data: "export_all_tables_xlsx" },
+                { text: "📝 دریافت فایل متنی (Word/MD)", callback_data: "export_all_tables_md" }
+            ],
+            [
+                { text: "📋 سایر جداول پایان‌نامه", callback_data: "menu_tables" },
+                { text: "🔙 منوی اصلی", callback_data: "menu_main" }
+            ]
+        ]
+    };
+
+    return sendTelegramMsg(botToken, chatId, tData.text, keyboard, "Markdown");
+}
+
+async function sendAllTablesExcel(botToken, chatId) {
+    await sendTelegramMsg(botToken, chatId, "⏳ در حال ساخت فایل اکسل چندبرگی (Multi-Sheet) استاندارد پایان‌نامه...");
+
+    const rawData = await fetchBackendData();
+    const cohort = filterByDatePreset(rawData, 'study');
+
+    // Sheet 1: Demographics
+    const s1Headers = ["Variable", "Category", "N", "Percentage"];
+    const total = cohort.length || 1;
+    const s1Rows = [
+        ["Total Cohort", "Official Study (Oct 22+)", total, "100.0%"],
+        ["Biological Sex", "Male", cohort.filter(r => r.q_gender === 'male').length, `${((cohort.filter(r => r.q_gender === 'male').length / total) * 100).toFixed(1)}%`],
+        ["Biological Sex", "Female", cohort.filter(r => r.q_gender === 'female').length, `${((cohort.filter(r => r.q_gender === 'female').length / total) * 100).toFixed(1)}%`],
+        ["Dental Affiliation", "Laypeople", cohort.filter(r => r.q_dentist_screen === 'no').length, `${((cohort.filter(r => r.q_dentist_screen === 'no').length / total) * 100).toFixed(1)}%`],
+        ["Dental Affiliation", "Dental Background", cohort.filter(r => r.q_dentist_screen === 'yes').length, `${((cohort.filter(r => r.q_dentist_screen === 'yes').length / total) * 100).toFixed(1)}%`],
+    ];
+
+    // Sheet 2: Appliance Ratings & Wilcoxon
+    const s2Headers = ["Aesthetic Dimension", "Aligner (Mean ± SD)", "Ceramic (Mean ± SD)", "Metal (Mean ± SD)", "Aligner vs Ceramic (p; d)", "Aligner vs Metal (p; d)", "Ceramic vs Metal (p; d)"];
+    const s2Rows = [
+        ["VAS Overall Attractiveness (0-10)", "7.40 ± 1.73", "6.25 ± 1.94", "4.75 ± 1.94", "p = 0.010*; d=0.66", "p = 0.001**; d=1.05", "p = 0.018*; d=0.60"],
+        ["VAS Conversational Noticeability", "2.10 ± 0.97", "3.30 ± 0.92", "4.30 ± 0.86", "p = 0.002**; d=-1.00", "p < 0.001***; d=-1.53", "p = 0.009**; d=-0.75"],
+        ["VAS Professional Suitability", "3.95 ± 0.89", "3.70 ± 0.86", "2.95 ± 0.83", "p = 0.374 (ns); d=0.21", "p = 0.006**; d=0.80", "p = 0.009**; d=0.70"],
+        ["VAS Detraction from Natural Smile", "1.90 ± 0.85", "2.85 ± 0.99", "3.55 ± 0.83", "p = 0.009**; d=-0.72", "p < 0.001***; d=-1.51", "p = 0.050 (ns); d=-0.49"],
+        ["VAS Shade Blending & Color Harmony", "4.10 ± 1.07", "3.30 ± 1.17", "2.15 ± 0.93", "p = 0.034*; d=0.53", "p < 0.001***; d=1.48", "p = 0.012*; d=0.71"]
+    ];
+
+    // Sheet 3: Order Bias
+    const s3Headers = ["Appliance Type", "Position 1 (Mean ± SD)", "Position 2 (Mean ± SD)", "Position 3 (Mean ± SD)", "Kruskal-Wallis H", "p-value", "Conclusion"];
+    const s3Rows = [
+        ["Clear Aligner", "7.57 ± 1.51 [N=7]", "6.00 ± 1.53 [N=7]", "8.83 ± 0.75 [N=6]", "10.170", "p = 0.006**", "Position effect detected"],
+        ["Ceramic Bracket", "6.60 ± 1.14 [N=5]", "7.80 ± 1.64 [N=5]", "5.30 ± 1.95 [N=10]", "4.582", "p = 0.101 (ns)", "No significant position bias"],
+        ["Metallic Bracket", "5.00 ± 2.14 [N=8]", "4.00 ± 1.69 [N=8]", "5.75 ± 1.89 [N=4]", "3.077", "p = 0.215 (ns)", "No significant position bias"]
+    ];
+
+    // Sheet 4: Subgroup Contrast
+    const s4Headers = ["Appliance Type", "Laypeople (Mean ± SD)", "Dental Background (Mean ± SD)", "Mean Difference", "Mann-Whitney U", "p-value", "Conclusion"];
+    const s4Rows = [
+        ["Clear Aligner", "7.44 ± 1.90", "7.25 ± 0.96", "+0.19", "36.5", "p = 0.700 (ns)", "No significant difference"],
+        ["Ceramic Bracket", "6.38 ± 2.16", "5.75 ± 0.50", "+0.62", "46.0", "p = 0.188 (ns)", "No significant difference"],
+        ["Metallic Bracket", "4.88 ± 1.82", "4.25 ± 2.63", "+0.62", "38.0", "p = 0.596 (ns)", "No significant difference"]
+    ];
+
+    const sheets = [
+        { name: "Table1_Demographics", headers: s1Headers, rows: s1Rows },
+        { name: "Table2_ApplianceRatings", headers: s2Headers, rows: s2Rows },
+        { name: "Table3_OrderBias", headers: s3Headers, rows: s3Rows },
+        { name: "Table4_LayVsDental", headers: s4Headers, rows: s4Rows },
+    ];
+
+    const xlsxBuf = buildXLSX(sheets);
+    const dateTag = new Date().toISOString().slice(0, 10);
+    const fileName = `appliance_survey_thesis_tables_${dateTag}.xlsx`;
+    const caption = "📊 *مجموعه کامل ۴ جدول رسمی پایان‌نامه (فرمت Excel .xlsx)*\n" +
+                    "شامل ۴ شیت تفکیک‌شده: دموگرافیک، آزمون‌های ویلکاکسون، تحلیل سوگیری توالی، و مقایسه عامه با دندانپزشکی.";
+
+    await sendTelegramDoc(
+        botToken,
+        chatId,
+        xlsxBuf,
+        fileName,
+        caption,
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+
+    return showThesisTablesMenu(botToken, chatId);
+}
+
+async function sendAllTablesMarkdown(botToken, chatId) {
+    const rawData = await fetchBackendData();
+    const cohort = filterByDatePreset(rawData, 'study');
+    const nFa = toPersianDigits(cohort.length);
+
+    let mdText = `# Academic Thesis Tables: Orthodontic Appliance Aesthetic Perception Study\n\n`;
+    mdText += `**Sample Size:** N = ${cohort.length} official study evaluators (evaluated between Oct 22 and Oct 30, 2026).\n`;
+    mdText += `**Standard:** Conforming to APA 7th Edition & BMJ/Lancet biomedical reporting guidelines.\n\n`;
+
+    for (const key of ['t1', 't2', 't3', 't4']) {
+        const t = THESIS_TABLES_DATA[key];
+        mdText += `## ${t.title}\n\n${t.text.replace(/[*_`]/g, '')}\n\n---\n\n`;
+    }
+
+    const dateTag = new Date().toISOString().slice(0, 10);
+    const fileName = `thesis_tables_apa_bmj_${dateTag}.md`;
+    const caption = `📝 *فایل متنی جداول پایان‌نامه (Markdown)*\nقابل کپی مستقیم در نرم‌افزار Word و پایان‌نامه.\nحجم نمونه: ${nFa} نفر`;
+
+    await sendTelegramDoc(botToken, chatId, mdText, fileName, caption, 'text/markdown;charset=utf-8;');
+    return showThesisTablesMenu(botToken, chatId);
+}
+
 async function sendAllAcademicFigures(botToken, chatId) {
-    await sendTelegramMsg(botToken, chatId, "⏳ در حال ارسال پکیج کامل ۱۰ نمودار آکادمیک...");
+    await sendTelegramMsg(botToken, chatId, "⏳ در حال ارسال پکیج کامل ۱۵ نمودار آکادمیک با کیفیت ۳۰۰ DPI...");
 
     for (const key of Object.keys(ACADEMIC_FIGURES)) {
         const fig = ACADEMIC_FIGURES[key];
@@ -514,19 +706,22 @@ async function sendAllAcademicFigures(botToken, chatId) {
         });
     }
 
-    return showMainMenu(botToken, chatId, "✅ تمامی ۱۰ نمودار آکادمیک با موفقیت ارسال شدند.");
+    return showMainMenu(botToken, chatId, "✅ تمامی ۱۵ نمودار آکادمیک با موفقیت ارسال شدند.");
 }
 
 async function showMainMenu(botToken, chatId, intro = null) {
     const text = intro || 
-        "🎓 *سامانه مدیریت و تحلیل پژوهش زیبایی ارتودنسی*\n\n" +
-        "📌 *وضعیت داده‌ها:* به‌صورت پیش‌فرض فقط داده‌های رسمی پایان‌نامه (از ۲۲ اکتبر به بعد) برای دقت علمی تحلیل می‌شوند.\n\n" +
+        "🎓 *سامانه جامع مدیریت و تحلیل پژوهش زیبایی ارتودنسی*\n\n" +
+        "📌 *وضعیت داده‌ها:* به‌صورت پیش‌فرض داده‌های رسمی پایان‌نامه (از ۲۲ اکتبر به بعد) با بالاترین دقت متدولوژی تحلیل می‌شوند.\n\n" +
         "عملیات مورد نظر خود را انتخاب کنید:";
 
     const keyboard = {
         inline_keyboard: [
             [
-                { text: "🎨 گالری نمودارهای آکادمیک (BMJ)", callback_data: "menu_figures_gallery" }
+                { text: "🎨 گالری کامل ۱۵ نمودار آکادمیک (BMJ)", callback_data: "menu_figures_gallery" }
+            ],
+            [
+                { text: "📋 جداول رسمی پایان‌نامه (Tables 1-4)", callback_data: "menu_tables" }
             ],
             [
                 { text: "📊 آمار داده‌های اصلی (از ۲۲ اکتبر)", callback_data: "menu_stats" },
@@ -537,10 +732,10 @@ async function showMainMenu(botToken, chatId, intro = null) {
                 { text: "🔄 تحلیل اثر ترتیب (Order Bias)", callback_data: "menu_order_bias" }
             ],
             [
-                { text: "📥 دریافت CSV داده‌های رسمی (Oct 22+)", callback_data: "export_csv_study" }
+                { text: "📥 دریافت همزمان CSV و Excel داده‌ها", callback_data: "export_csv_study" }
             ],
             [
-                { text: "🌐 مشاهده آمار کل داده‌ها (با تست‌های قبل از ۲۲)", callback_data: "menu_stats_all" }
+                { text: "🌐 مشاهده آمار کل داده‌ها (با پایلوت‌ها)", callback_data: "menu_stats_all" }
             ]
         ]
     };
@@ -568,7 +763,7 @@ async function showStats(botToken, chatId, preset = 'study') {
     let orderBreakdown = "";
     for (const [ord, cnt] of Object.entries(orderCounts)) {
         const pct = ((cnt / total) * 100).toFixed(1);
-        orderBreakdown += `▪️ ${ord}:\n   👈 ${cnt} نفر (${pct}%)\n`;
+        orderBreakdown += `▪️ ${ord}:\n   👈 ${toPersianDigits(cnt)} نفر (${toPersianDigits(pct)}%)\n`;
     }
 
     const titlePrefix = preset === 'study' ? "🎯 *داده‌های رسمی پایان‌نامه (از ۲۲ اکتبر)*" : "🌐 *کل داده‌های دیتابیس (شامل پایلوت‌ها)*";
@@ -576,15 +771,15 @@ async function showStats(botToken, chatId, preset = 'study') {
 
     const text = 
         `📊 *گزارش آماری پژوهش*\n${titlePrefix}\n\n` +
-        `👥 *تعداد شرکت‌کنندگان:* ${total} نفر\n` +
-        `🕒 *آخرین ثبت پاسخ:* ${latest}\n\n` +
+        `👥 *تعداد شرکت‌کنندگان:* ${toPersianDigits(total)} نفر\n` +
+        `🕒 *آخرین ثبت پاسخ:* ${toPersianDigits(latest)}\n\n` +
         `🔄 *توزیع ترتیب مشاهده دستگاه‌ها:*\n${orderBreakdown}` +
         filteredNote;
 
     const keyboard = {
         inline_keyboard: [
             [
-                { text: `📥 دریافت فایل این داده‌ها (CSV)`, callback_data: `export_csv_${preset}` },
+                { text: `📥 دریافت فایل این داده‌ها (CSV + Excel)`, callback_data: `export_csv_${preset}` },
                 { text: "📈 مقایسه نمرات دستگاه‌ها", callback_data: "menu_thesis_metrics" }
             ],
             [
@@ -651,11 +846,11 @@ async function showDateSelectedMenu(botToken, chatId, preset, customStart = null
     const keyboard = {
         inline_keyboard: [
             [
-                { text: "📁 دانلود CSV کامل (با ستون ترتیب)", callback_data: `export_csv_${preset}` }
+                { text: "📁 دانلود همزمان CSV و Excel کامل", callback_data: `export_csv_${preset}` }
             ],
             [
-                { text: "👤 فقط اطلاعات دموگرافیک", callback_data: `export_demo_${preset}` },
-                { text: "⭐ فقط نمرات VAS و زیبایی", callback_data: `export_vas_${preset}` }
+                { text: "👤 فقط اطلاعات دموگرافیک (CSV + Excel)", callback_data: `export_demo_${preset}` },
+                { text: "⭐ فقط نمرات VAS و زیبایی (CSV + Excel)", callback_data: `export_vas_${preset}` }
             ],
             [
                 { text: "📅 انتخاب بازه دیگر", callback_data: "menu_daterange" },
@@ -667,8 +862,8 @@ async function showDateSelectedMenu(botToken, chatId, preset, customStart = null
     return sendTelegramMsg(botToken, chatId, text, keyboard, "Markdown");
 }
 
-async function sendExportCSV(botToken, chatId, preset, fieldFilter) {
-    await sendTelegramMsg(botToken, chatId, "⏳ در حال ساخت فایل CSV با ستون‌های ترتیب و متغیرها...");
+async function sendExportFiles(botToken, chatId, preset, fieldFilter) {
+    await sendTelegramMsg(botToken, chatId, "⏳ در حال ساخت همزمان فایل‌های CSV و Excel (.xlsx) با ستون‌های توالی و متغیرها...");
 
     const raw = await fetchBackendData();
     const filtered = filterByDatePreset(raw, preset);
@@ -679,11 +874,37 @@ async function sendExportCSV(botToken, chatId, preset, fieldFilter) {
 
     const csvContent = generateCSV(filtered, fieldFilter);
     const dateTag = new Date().toISOString().slice(0, 10);
-    const fileName = `thesis_survey_${preset}_${fieldFilter}_${dateTag}.csv`;
-    const caption = `📁 خروجی داده‌های پژوهش\nبازه: ${preset} | فیلدها: ${fieldFilter}\nتعداد رکورد: ${filtered.length}`;
+    const baseName = `thesis_survey_${preset}_${fieldFilter}_${dateTag}`;
+    const nFa = toPersianDigits(filtered.length);
+    const captionCsv = `📁 خروجی داده‌های پژوهش (CSV)\nبازه: ${preset} | فیلدها: ${fieldFilter}\nتعداد: ${nFa} نفر`;
+    const captionXlsx = `📊 خروجی رسمی داده‌های پژوهش (Excel .xlsx)\nبازه: ${preset} | فیلدها: ${fieldFilter}\nتعداد: ${nFa} نفر`;
 
-    await sendTelegramDoc(botToken, chatId, csvContent, fileName, caption);
-    return showMainMenu(botToken, chatId, "فایل با موفقیت ارسال شد. عملیات بعدی:");
+    // ۱. ارسال فایل CSV
+    await sendTelegramDoc(botToken, chatId, csvContent, `${baseName}.csv`, captionCsv);
+
+    // ۲. فیلتر کردن ردیف‌ها برای اکسل و ارسال
+    const priority = ['id', 'timestamp', 'appliance_order', 'appliance_order_fa', 'first_appliance', 'second_appliance', 'third_appliance', 'q_age', 'q_gender', 'q_edu'];
+    const filteredObjects = filtered.map(r => {
+        const obj = {};
+        Object.keys(r).forEach(k => {
+            if (fieldFilter === 'demo' && !k.startsWith('q_') && !priority.includes(k)) return;
+            if (fieldFilter === 'vas' && !k.startsWith('vas_') && !k.startsWith('acc_') && !priority.includes(k)) return;
+            obj[k] = r[k];
+        });
+        return obj;
+    });
+
+    const xlsxBuf = buildXLSXFromObjects(filteredObjects, 'SurveyData', priority);
+    await sendTelegramDoc(
+        botToken,
+        chatId,
+        xlsxBuf,
+        `${baseName}.xlsx`,
+        captionXlsx,
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+
+    return showMainMenu(botToken, chatId, "✅ هر دو فایل CSV و Excel با موفقیت ارسال شدند. عملیات بعدی:");
 }
 
 async function showThesisComparison(botToken, chatId, preset = 'study') {
@@ -703,7 +924,7 @@ async function showThesisComparison(botToken, chatId, preset = 'study') {
         { label: "درک بهداشت دهان", key: "hygiene" }
     ];
 
-    let report = `📈 *مقایسه میانگین نمرات دستگاه‌ها (تعداد: ${data.length} نفر)*\n`;
+    let report = `📈 *مقایسه میانگین نمرات دستگاه‌ها (تعداد: ${toPersianDigits(data.length)} نفر)*\n`;
     report += "معیار: `میانگین ± انحراف معیار`\n";
     report += "━━━━━━━━━━━━━━━━━━━━\n";
 
@@ -713,7 +934,7 @@ async function showThesisComparison(botToken, chatId, preset = 'study') {
             const vals = data.map(r => r[`vas_${app}_${m.key}`] || r[`psy_${app}_${m.key}`] || r[`acc_${app}_${m.key}`]).filter(Boolean);
             const stats = calcMeanSD(vals);
             const faName = APPLIANCE_FA_MAP[app];
-            report += `  • ${faName}: \`${stats.mean} ± ${stats.sd}\`\n`;
+            report += `  • ${faName}: \`${toPersianDigits(stats.mean)} ± ${toPersianDigits(stats.sd)}\`\n`;
         }
         report += "\n";
     }
@@ -722,7 +943,7 @@ async function showThesisComparison(botToken, chatId, preset = 'study') {
         inline_keyboard: [
             [
                 { text: "🔄 بررسی اثر ترتیب بر نمرات", callback_data: "menu_order_bias" },
-                { text: "📥 دریافت فایل CSV این داده‌ها", callback_data: `export_csv_${preset}` }
+                { text: "📥 دریافت همزمان CSV و Excel", callback_data: `export_csv_${preset}` }
             ],
             [
                 { text: "📅 تغییر بازه زمانی", callback_data: "menu_daterange" },
@@ -742,7 +963,7 @@ async function showOrderBiasAnalysis(botToken, chatId, preset = 'study') {
 
     const data = filterByDatePreset(rawData, preset);
 
-    let report = `🔄 *تحلیل اثر ترتیب و تقدم-تأخر (تعداد: ${data.length} نفر)*\n\n`;
+    let report = `🔄 *تحلیل اثر ترتیب و تقدم-تأخر (تعداد: ${toPersianDigits(data.length)} نفر)*\n\n`;
     report += "میانگین نمره جذابیت کلی (VAS Overall) بر اساس نوبت مشاهده:\n";
     report += "━━━━━━━━━━━━━━━━━━━━\n\n";
 
@@ -759,9 +980,9 @@ async function showOrderBiasAnalysis(botToken, chatId, preset = 'study') {
         const s3 = calcMeanSD(pos3Vals);
 
         report += `🦷 *${faName}:*\n`;
-        report += `  ۱️⃣ دیده شده به عنوان دستگاه اول (N=${s1.count}): \`${s1.mean} ± ${s1.sd}\`\n`;
-        report += `  ۲️⃣ دیده شده به عنوان دستگاه دوم (N=${s2.count}): \`${s2.mean} ± ${s2.sd}\`\n`;
-        report += `  ۳️⃣ دیده شده به عنوان دستگاه سوم (N=${s3.count}): \`${s3.mean} ± ${s3.sd}\`\n\n`;
+        report += `  ۱️⃣ دیده شده به عنوان دستگاه اول (N=${toPersianDigits(s1.count)}): \`${toPersianDigits(s1.mean)} ± ${toPersianDigits(s1.sd)}\`\n`;
+        report += `  ۲️⃣ دیده شده به عنوان دستگاه دوم (N=${toPersianDigits(s2.count)}): \`${toPersianDigits(s2.mean)} ± ${toPersianDigits(s2.sd)}\`\n`;
+        report += `  ۳️⃣ دیده شده به عنوان دستگاه سوم (N=${toPersianDigits(s3.count)}): \`${toPersianDigits(s3.mean)} ± ${toPersianDigits(s3.sd)}\`\n\n`;
     }
 
     report += "💡 _نمرات فوق تایید می‌کنند که آیا تقدم و تاخر در نمایش، سوگیری ایجاد کرده است یا خیر._";
@@ -770,7 +991,7 @@ async function showOrderBiasAnalysis(botToken, chatId, preset = 'study') {
         inline_keyboard: [
             [
                 { text: "📊 مقایسه کلی دستگاه‌ها", callback_data: "menu_thesis_metrics" },
-                { text: "📥 دریافت فایل CSV این داده‌ها", callback_data: `export_csv_${preset}` }
+                { text: "📥 دریافت همزمان CSV و Excel", callback_data: `export_csv_${preset}` }
             ],
             [
                 { text: "📅 تغییر بازه زمانی", callback_data: "menu_daterange" },

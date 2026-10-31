@@ -157,6 +157,10 @@ def load_data(start_date="2026-10-22", end_date=None, include_pilot=False):
 # ---------------------------------------------------------------------------
 def paired_wilcoxon(series_a, series_b):
     """Calculates Wilcoxon signed-rank test and paired Cohen's d effect size."""
+    if not isinstance(series_a, pd.Series):
+        series_a = pd.Series(series_a)
+    if not isinstance(series_b, pd.Series):
+        series_b = pd.Series(series_b)
     mask = series_a.notna() & series_b.notna()
     a = series_a[mask].to_numpy(dtype=float)
     b = series_b[mask].to_numpy(dtype=float)

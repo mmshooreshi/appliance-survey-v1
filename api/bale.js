@@ -1,4 +1,4 @@
-// api/bale.js
+import { buildXLSXFromObjects } from './xlsx_builder.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -10,8 +10,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'No data provided' });
     }
 
-    // دریافت توکن و چت‌آیدی بله از متغیرهای محیطی
-    // در صورت عدم تنظیم BALE_BOT_TOKEN، از TELEGRAM_BOT_TOKEN استفاده می‌شود
     const botToken = process.env.BALE_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
     const chatIdsString = process.env.BALE_CHAT_IDS || process.env.TELEGRAM_CHAT_IDS; 
     
@@ -40,42 +38,35 @@ export default async function handler(req, res) {
     const csvValues = Object.values(responses).map(escapeCSV).join(',');
     const csvString = '\uFEFF' + csvHeaders + '\n' + csvValues;
 
+    // ۳. ساخت فایل اکسل (XLSX)
+    const xlsxBuffer = buildXLSXFromObjects([responses], 'SurveyResponse');
+    const timestamp = Date.now();
+
     try {
         const sendPromises = chatIds.map(async (chatId) => {
             try {
-                // الف) ارسال پیام متنی به پیام‌رسان بله
-                const textRes = await fetch(`https://tapi.bale.ai/bot${botToken}/sendMessage`, {
+                // الف) ارسال پیام متنی
+                await fetch(`https://tapi.bale.ai/bot${botToken}/sendMessage`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        text: messageText
-                    })
+                    body: JSON.stringify({ chat_id: chatId, text: messageText })
                 });
-                
-                const textResultData = await textRes.json();
-                if (!textResultData.ok) {
-                    console.error(`Bale sendMessage error for ${chatId}:`, textResultData);
-                }
 
-                // ب) ارسال فایل CSV به پیام‌رسان بله
-                const formData = new FormData();
-                formData.append('chat_id', chatId);
-                formData.append('caption', '📁 فایل خروجی (CSV)');
-                
+                // ب) ارسال فایل CSV
+                const formCsv = new FormData();
+                formCsv.append('chat_id', chatId);
+                formCsv.append('caption', '📁 فایل خروجی داده‌ها (CSV)');
                 const csvBlob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-                const fileName = `survey_result_${Date.now()}.csv`;
-                formData.append('document', csvBlob, fileName);
+                formCsv.append('document', csvBlob, `survey_result_${timestamp}.csv`);
+                await fetch(`https://tapi.bale.ai/bot${botToken}/sendDocument`, { method: "POST", body: formCsv });
 
-                const docRes = await fetch(`https://tapi.bale.ai/bot${botToken}/sendDocument`, {
-                    method: "POST",
-                    body: formData
-                });
-
-                const docResultData = await docRes.json();
-                if (!docResultData.ok) {
-                    console.error(`Bale sendDocument error for ${chatId}:`, docResultData);
-                }
+                // ج) ارسال فایل Excel (.xlsx)
+                const formXlsx = new FormData();
+                formXlsx.append('chat_id', chatId);
+                formXlsx.append('caption', '📊 فایل خروجی اکسل (Excel .xlsx)');
+                const xlsxBlob = new Blob([xlsxBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                formXlsx.append('document', xlsxBlob, `survey_result_${timestamp}.xlsx`);
+                await fetch(`https://tapi.bale.ai/bot${botToken}/sendDocument`, { method: "POST", body: formXlsx });
 
                 return true;
             } catch (innerErr) {
