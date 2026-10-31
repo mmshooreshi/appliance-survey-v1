@@ -1,6 +1,6 @@
 # Academic Figures & Legends: Orthodontic Appliance Aesthetic Perception Study
 
-**Sample Size:** N = 26 official study evaluators (evaluated between Oct 22 and Oct 30, 2026).
+**Sample Size:** N = 33 official study evaluators (evaluated between Oct 22 and Oct 30, 2026).
 **Guidelines:** Conforming to BMJ, Lancet, and Nature visual presentation and statistical reporting standards.
 
 ### Figure 1: Overall Aesthetic Attractiveness Ratings Across Orthodontic Appliances
