@@ -397,18 +397,36 @@
         loadData();
 
         function exportToCSV() {
+            const sDate = document.getElementById('startDateInput')?.value || '';
+            const eDate = document.getElementById('endDateInput')?.value || '';
+            let url = `/api/export?format=csv`;
+            if (sDate) url += `&start_date=${encodeURIComponent(sDate)}`;
+            if (eDate) url += `&end_date=${encodeURIComponent(eDate)}`;
+            window.open(url, '_blank');
+        }
+
+        function exportToCSVClient() {
             const dataToExport = (filteredData && filteredData.length > 0) ? filteredData : allRecords;
             if (dataToExport.length === 0) {
                 alert('هیچ داده‌ای برای خروجی در این بازه وجود ندارد.');
                 return;
             }
 
-            // 1. Get all unique headers from all rows
-            const headers = Array.from(new Set(dataToExport.flatMap(row => Object.keys(row))));
+            const priorityCols = [
+                'id', 'timestamp', 'appliance_order', 'appliance_order_fa',
+                'order_appliance_1', 'order_appliance_2', 'order_appliance_3',
+                'first_appliance', 'second_appliance', 'third_appliance',
+                'q_age', 'q_gender', 'q_edu', 'q_marital', 'q_dentist_screen',
+                'q_satisfaction', 'q_importance_appearance', 'q_history', 'q_current_need',
+                'q_social_media', 'q_familiarity'
+            ];
 
-            // 2. Create CSV content
+            const allKeys = new Set(priorityCols);
+            dataToExport.forEach(row => Object.keys(row).forEach(k => allKeys.add(k)));
+            const headers = Array.from(allKeys);
+
             const csvRows = [];
-            csvRows.push('\uFEFF' + headers.join(',')); // Add UTF-8 BOM + headers row
+            csvRows.push('\uFEFF' + headers.join(','));
 
             for (const row of dataToExport) {
                 const values = headers.map(header => {
@@ -418,7 +436,6 @@
                 csvRows.push(values.join(','));
             }
 
-            // 3. Trigger download
             const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");

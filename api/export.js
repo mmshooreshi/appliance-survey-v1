@@ -146,12 +146,13 @@ export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method Not Allowed' });
 
     try {
+        const query = req.query || (req.url ? Object.fromEntries(new URL(req.url, 'http://localhost').searchParams) : {});
         const rawData = await fetchLiveData();
-        const cohort = filterDataset(rawData, req.query);
+        const cohort = filterDataset(rawData, query);
 
-        const format = (req.query.format || 'xlsx').toLowerCase();
-        const exportType = (req.query.type || 'survey').toLowerCase();
-        const preset = req.query.preset || 'study';
+        const format = (query.format || 'xlsx').toLowerCase();
+        const exportType = (query.type || 'survey').toLowerCase();
+        const preset = query.preset || 'study';
         const dateTag = new Date().toISOString().slice(0, 10);
 
         // -------------------------------------------------------------
@@ -266,6 +267,7 @@ export default async function handler(req, res) {
         // -------------------------------------------------------------
         const priorityCols = [
             'id', 'timestamp', 'appliance_order', 'appliance_order_fa',
+            'order_appliance_1', 'order_appliance_2', 'order_appliance_3',
             'first_appliance', 'second_appliance', 'third_appliance',
             'q_age', 'q_gender', 'q_edu', 'q_marital', 'q_dentist_screen',
             'q_satisfaction', 'q_importance_appearance', 'q_history', 'q_current_need',
