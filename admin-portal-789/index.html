@@ -167,9 +167,19 @@
                 }
             }
 
-            // تابع تشخیص ترتیب برای رکوردهای گذشته و آینده
-            const detectOrder = (row) => {
-                if (row.appliance_order) return row.appliance_order;
+            const APPLIANCE_FA_MAP = {
+                aligner: "الاینر شفاف",
+                ceramic: "براکت سرامیکی",
+                metal: "براکت فلزی"
+            };
+
+            // تابع تشخیص ترتیب برای تمامی رکوردهای گذشته و آینده
+            const detectOrderArray = (row) => {
+                if (row.appliance_order) {
+                    const parts = row.appliance_order.replace(/>/g, ',').split(',').map(s => s.trim().toLowerCase());
+                    const valid = parts.filter(s => ['aligner', 'ceramic', 'metal'].includes(s));
+                    if (valid.length > 0) return valid;
+                }
                 const keys = Object.keys(row);
                 const order = [];
                 const seen = new Set();
@@ -181,19 +191,29 @@
                         }
                     }
                 }
-                return order.join(' > ');
+                return order;
             };
 
-            // FLATTEN THE DATA: Convert {id, timestamp, responses: {...}} to {id, timestamp, ...responses}
+            // یکپارچه‌سازی و غنی‌سازی تمام رکوردها با ترتیب‌های انگلیسی و فارسی
             globalData = rawData.map(item => {
                 const flat = {
                     id: item.id,
                     timestamp: item.timestamp,
                     ...(item.responses ? item.responses : item)
                 };
-                if (!flat.appliance_order) {
-                    flat.appliance_order = detectOrder(flat);
+                const order = detectOrderArray(flat);
+                if (!flat.appliance_order && order.length > 0) {
+                    flat.appliance_order = order.join(' > ');
                 }
+                if (!flat.appliance_order_fa && order.length > 0) {
+                    flat.appliance_order_fa = order.map(a => APPLIANCE_FA_MAP[a] || a).join(' > ');
+                }
+                if (!flat.order_appliance_1 && order[0]) flat.order_appliance_1 = order[0];
+                if (!flat.order_appliance_2 && order[1]) flat.order_appliance_2 = order[1];
+                if (!flat.order_appliance_3 && order[2]) flat.order_appliance_3 = order[2];
+                if (!flat.first_appliance && order[0]) flat.first_appliance = order[0];
+                if (!flat.second_appliance && order[1]) flat.second_appliance = order[1];
+                if (!flat.third_appliance && order[2]) flat.third_appliance = order[2];
                 return flat;
             });
 

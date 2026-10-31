@@ -90,6 +90,9 @@ async function fetchLiveData() {
         row.first_appliance = order[0] || '';
         row.second_appliance = order[1] || '';
         row.third_appliance = order[2] || '';
+        row.order_appliance_1 = order[0] || '';
+        row.order_appliance_2 = order[1] || '';
+        row.order_appliance_3 = order[2] || '';
         return row;
     });
 }
