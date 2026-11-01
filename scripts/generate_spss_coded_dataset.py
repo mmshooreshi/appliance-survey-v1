@@ -353,6 +353,48 @@ def encode_row(row):
                 
     return encoded
 
+CODEBOOK_LOOKUP = {item["name"]: item for item in CODEBOOK}
+
+def get_labeled_row(r):
+    order = detect_order(r)
+    order_str = " > ".join(order)
+    perm_code = ENCODE_MAPS["permutation_map"].get(order_str, 1)
+    perm_label = CODEBOOK_LOOKUP["seq_permutation"]["values"].get(perm_code, order_str)
+
+    app_fa_map = {
+        "aligner": "الاینر شفاف",
+        "ceramic": "براکت سرامیکی",
+        "metal": "براکت فلزی"
+    }
+    app_en_map = {
+        "aligner": "Clear Aligner",
+        "ceramic": "Ceramic Bracket",
+        "metal": "Metallic Bracket"
+    }
+
+    labeled = {}
+    labeled["id"] = r.get("id")
+    labeled["timestamp"] = r.get("timestamp", "")
+    labeled["appliance_order"] = order_str
+    labeled["appliance_order_fa"] = " > ".join([app_fa_map.get(a, a) for a in order])
+    labeled["seq_permutation"] = perm_label
+    labeled["order_app_1"] = app_en_map.get(order[0], order[0])
+    labeled["order_app_2"] = app_en_map.get(order[1], order[1])
+    labeled["order_app_3"] = app_en_map.get(order[2], order[2])
+
+    enc = encode_row(r)
+    for item in CODEBOOK:
+        vn = item["name"]
+        if vn in labeled:
+            continue
+        code = enc.get(vn)
+        if code is not None and item["values"] and code in item["values"]:
+            labeled[vn] = item["values"][code]
+        else:
+            raw_v = r.get(vn)
+            labeled[vn] = raw_v if raw_v is not None else (code if code is not None else "")
+    return labeled
+
 # -------------------------------------------------------------
 # 4. EXPORT TO MULTI-SHEET EXCEL (SPSS-READY)
 # -------------------------------------------------------------
@@ -431,19 +473,30 @@ def build_spss_excel(cohort, output_path):
     # ---------------------------------------------------------
     ws_raw = wb.create_sheet(title="Raw_Labels_Reference")
     ws_raw.views.sheetView[0].showGridLines = True
-    ws_raw.append(var_names)
-    for col_idx in range(1, len(var_names) + 1):
+
+    # Detailed headers including explicit English & Persian presentation order
+    raw_var_names = [
+        "id", "timestamp", "appliance_order", "appliance_order_fa",
+        "seq_permutation", "order_app_1", "order_app_2", "order_app_3"
+    ] + [vn for vn in var_names if vn not in ("id", "timestamp", "seq_permutation", "order_app_1", "order_app_2", "order_app_3")]
+
+    ws_raw.append(raw_var_names)
+    for col_idx in range(1, len(raw_var_names) + 1):
         cell = ws_raw.cell(row=1, column=col_idx)
         cell.font = f_header
         cell.fill = PatternFill("solid", fgColor="319795")
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     for r in cohort:
-        row_vals = []
-        for vn in var_names:
-            val = r.get(vn, "")
-            row_vals.append(str(val))
+        lab = get_labeled_row(r)
+        row_vals = [lab.get(vn, "") for vn in raw_var_names]
         ws_raw.append(row_vals)
+
+    for row in ws_raw.iter_rows(min_row=2, max_row=len(cohort)+1, min_col=1, max_col=len(raw_var_names)):
+        for cell in row:
+            cell.font = f_data
+            cell.border = border_thin
+            cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Auto-fit columns
     for ws in [ws_coded, ws_cb, ws_raw]:
