@@ -6,8 +6,8 @@
 # ]
 # ///
 """
-Generates SPSS-Ready Numerically Coded Dataset, Complete Codebook, and SPSS Syntax (.sps)
-for the Orthodontic Appliance Aesthetic Perception Study.
+Generates Proposal-Aligned SPSS Coded Dataset, Extended Research Dataset,
+Complete Codebook Dictionary, and SPSS Syntax (.sps).
 """
 
 import os
@@ -23,7 +23,138 @@ OUTPUT_DIR = "/Users/mamthenebo/Me/projects/appliance-survey-v1/exports/spss"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # -------------------------------------------------------------
-# 1. CODING SCHEME & CODEBOOK DEFINITIONS
+# 1. PROPOSAL CORE VARIABLES (Approved in Pajooheshyar Proposal)
+# -------------------------------------------------------------
+PROPOSAL_CORE_SPECS = [
+    {
+        "core_name": "id",
+        "source_name": "id",
+        "label": "شناسه شرکت‌کننده (Participant ID)",
+        "type": "Numeric",
+        "measure": "Nominal",
+        "values": {}
+    },
+    {
+        "core_name": "gender",
+        "source_name": "q_gender",
+        "label": "جنسیت (Gender)",
+        "type": "Numeric",
+        "measure": "Nominal",
+        "values": {1: "Male (مرد)", 2: "Female (زن)"}
+    },
+    {
+        "core_name": "age_group",
+        "source_name": "q_age",
+        "label": "رده سنی (Age Group)",
+        "type": "Numeric",
+        "measure": "Ordinal",
+        "values": {
+            1: "Under 18 (<18)",
+            2: "18-24 years",
+            3: "25-34 years",
+            4: "35-44 years",
+            5: "45-54 years",
+            6: "55+ years"
+        }
+    },
+    {
+        "core_name": "edu_level",
+        "source_name": "q_edu",
+        "label": "سطح تحصیلات (Education Level)",
+        "type": "Numeric",
+        "measure": "Ordinal",
+        "values": {
+            1: "Diploma / High School",
+            2: "University Student (دانشجو)",
+            3: "Bachelor (کارشناسی)",
+            4: "Master (کارشناسی ارشد)",
+            5: "PhD / Professional Doctorate (دکتری و بالاتر)"
+        }
+    },
+    {
+        "core_name": "seq_order",
+        "source_name": "seq_permutation",
+        "label": "کد جایگشت توالی نمایش ۳ دستگاه (Presentation Order Permutation)",
+        "type": "Numeric",
+        "measure": "Nominal",
+        "values": {
+            1: "Aligner > Ceramic > Metal",
+            2: "Aligner > Metal > Ceramic",
+            3: "Ceramic > Aligner > Metal",
+            4: "Ceramic > Metal > Aligner",
+            5: "Metal > Aligner > Ceramic",
+            6: "Metal > Ceramic > Aligner"
+        }
+    },
+    {
+        "core_name": "order_first_app",
+        "source_name": "order_app_1",
+        "label": "اولین دستگاه مشاهده‌شده (First Displayed Appliance)",
+        "type": "Numeric",
+        "measure": "Nominal",
+        "values": {1: "Clear Aligner", 2: "Ceramic Bracket", 3: "Metallic Bracket"}
+    },
+    {
+        "core_name": "vas_aligner",
+        "source_name": "vas_aligner_overall",
+        "label": "نمره ادراک زیبایی کلیر الاینر (Clear Aligner Aesthetic VAS: 0-10)",
+        "type": "Numeric",
+        "measure": "Scale",
+        "values": {0: "0-Completely Unattractive", 10: "10-Completely Attractive"}
+    },
+    {
+        "core_name": "vas_ceramic",
+        "source_name": "vas_ceramic_overall",
+        "label": "نمره ادراک زیبایی براکت سرامیکی (Ceramic Bracket Aesthetic VAS: 0-10)",
+        "type": "Numeric",
+        "measure": "Scale",
+        "values": {0: "0-Completely Unattractive", 10: "10-Completely Attractive"}
+    },
+    {
+        "core_name": "vas_metal",
+        "source_name": "vas_metal_overall",
+        "label": "نمره ادراک زیبایی براکت فلزی (Metallic Bracket Aesthetic VAS: 0-10)",
+        "type": "Numeric",
+        "measure": "Scale",
+        "values": {0: "0-Completely Unattractive", 10: "10-Completely Attractive"}
+    },
+    {
+        "core_name": "dentist_screen",
+        "source_name": "q_dentist_screen",
+        "label": "غربالگری دندان‌پزشکی / معیار ورود (Dental Profession Screen / Inclusion)",
+        "type": "Numeric",
+        "measure": "Nominal",
+        "values": {0: "Layperson / Eligible (خیر - فرد عادی)", 1: "Dental Student/Dentist / Excluded (بله - دندانپزشک)"}
+    },
+    {
+        "core_name": "ortho_history",
+        "source_name": "q_history",
+        "label": "سابقه درمان ارتودنسی / معیار خروج (Past Orthodontic Treatment / Exclusion)",
+        "type": "Numeric",
+        "measure": "Nominal",
+        "values": {
+            1: "None / No History (بدون سابقه قبلی)",
+            2: "Fixed Brackets (براکت ثابت)",
+            3: "Clear Aligner (الاینر شفاف)",
+            4: "Removable Appliance (پلاک متحرک)",
+            5: "Multiple Appliances (بیش از یک نوع)"
+        }
+    },
+    {
+        "core_name": "eligible_proposal",
+        "source_name": "eligible_proposal",
+        "label": "انطباق با معیارهای ورود و خروج پروپوزال (Strict Proposal Eligibility)",
+        "type": "Numeric",
+        "measure": "Nominal",
+        "values": {
+            0: "Excluded (دارای معیار خروج: دندانپزشک یا سابقه ارتودنسی)",
+            1: "Eligible (واجد شرایط کامل: فرد عادی بدون سابقه ارتودنسی)"
+        }
+    }
+]
+
+# -------------------------------------------------------------
+# 2. EXTENDED CODEBOOK DEFINITIONS
 # -------------------------------------------------------------
 CODEBOOK = [
     {
@@ -137,6 +268,16 @@ CODEBOOK = [
         }
     },
     {
+        "name": "eligible_proposal",
+        "label": "انطباق با معیارهای ورود و خروج پروپوزال (Proposal Eligibility: 1=Eligible, 0=Excluded)",
+        "type": "Numeric",
+        "measure": "Nominal",
+        "values": {
+            0: "Excluded (دارای معیار خروج: دندانپزشک یا سابقه ارتودنسی)",
+            1: "Eligible (واجد شرایط کامل: فرد عادی بدون سابقه ارتودنسی)"
+        }
+    },
+    {
         "name": "q_current_need",
         "label": "نیاز ادراک‌شده فعلی به درمان (Perceived Need for Treatment)",
         "type": "Numeric",
@@ -226,7 +367,7 @@ for app_key, app_label in APPLIANCE_PREFIXES:
         })
 
 # -------------------------------------------------------------
-# 2. ENCODING LOOKUP DICTIONARIES
+# 3. ENCODING LOOKUP DICTIONARIES
 # -------------------------------------------------------------
 ENCODE_MAPS = {
     "q_gender": {"male": 1, "مرد": 1, "female": 2, "زن": 2},
@@ -296,7 +437,7 @@ ENCODE_MAPS = {
 }
 
 # -------------------------------------------------------------
-# 3. FETCH AND PROCESS DATA
+# 4. FETCH AND PROCESS DATA
 # -------------------------------------------------------------
 def fetch_data():
     req = urllib.request.Request(BACKEND_URL, headers={"User-Agent": "SPSSDataEncoder/1.0"})
@@ -336,6 +477,11 @@ def encode_row(row):
         raw_val = str(row.get(k, "")).strip().lower()
         mapping = ENCODE_MAPS.get(k, {})
         encoded[k] = mapping.get(raw_val, None)
+
+    # Eligibility based on Proposal Criteria (Layperson AND No past ortho history)
+    dent_val = encoded.get("q_dentist_screen")
+    hist_val = encoded.get("q_history")
+    encoded["eligible_proposal"] = 1 if (dent_val == 0 and hist_val == 1) else 0
 
     # Numerical ratings
     for item in CODEBOOK:
@@ -396,7 +542,7 @@ def get_labeled_row(r):
     return labeled
 
 # -------------------------------------------------------------
-# 4. EXPORT TO MULTI-SHEET EXCEL (SPSS-READY)
+# 5. EXPORT TO MULTI-SHEET EXCEL (SPSS-READY)
 # -------------------------------------------------------------
 def build_spss_excel(cohort, output_path):
     wb = Workbook()
@@ -404,6 +550,7 @@ def build_spss_excel(cohort, output_path):
     # Styles
     f_header = Font(name="Arial", size=10, bold=True, color="FFFFFF")
     fill_navy = PatternFill("solid", fgColor="1B365D")
+    fill_purple = PatternFill("solid", fgColor="4C1D95")
     fill_blue = PatternFill("solid", fgColor="2B6CB0")
     f_data = Font(name="Arial", size=9)
     border_thin = Border(
@@ -414,16 +561,41 @@ def build_spss_excel(cohort, output_path):
     )
 
     # ---------------------------------------------------------
-    # Sheet 1: Coded_Data (Pure numeric matrix)
+    # Sheet 1: Proposal_Core_SPSS (Pure Proposal-Aligned Matrix)
     # ---------------------------------------------------------
-    ws_coded = wb.active
-    ws_coded.title = "Coded_Data_SPSS"
-    ws_coded.views.sheetView[0].showGridLines = True
+    ws_core = wb.active
+    ws_core.title = "Proposal_Core_SPSS"
+    ws_core.views.sheetView[0].showGridLines = True
+
+    core_names = [spec["core_name"] for spec in PROPOSAL_CORE_SPECS]
+    ws_core.append(core_names)
+    for col_idx in range(1, len(core_names) + 1):
+        cell = ws_core.cell(row=1, column=col_idx)
+        cell.font = f_header
+        cell.fill = fill_purple
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    for r in cohort:
+        enc = encode_row(r)
+        row_vals = [enc.get(spec["source_name"], "") for spec in PROPOSAL_CORE_SPECS]
+        ws_core.append(row_vals)
+
+    for row in ws_core.iter_rows(min_row=2, max_row=len(cohort)+1, min_col=1, max_col=len(core_names)):
+        for cell in row:
+            cell.font = f_data
+            cell.border = border_thin
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    # ---------------------------------------------------------
+    # Sheet 2: Extended_All_SPSS (Full 62 Variables)
+    # ---------------------------------------------------------
+    ws_extended = wb.create_sheet(title="Extended_All_SPSS")
+    ws_extended.views.sheetView[0].showGridLines = True
 
     var_names = [item["name"] for item in CODEBOOK]
-    ws_coded.append(var_names)
+    ws_extended.append(var_names)
     for col_idx in range(1, len(var_names) + 1):
-        cell = ws_coded.cell(row=1, column=col_idx)
+        cell = ws_extended.cell(row=1, column=col_idx)
         cell.font = f_header
         cell.fill = fill_navy
         cell.alignment = Alignment(horizontal="center", vertical="center")
@@ -431,20 +603,20 @@ def build_spss_excel(cohort, output_path):
     for r in cohort:
         enc = encode_row(r)
         row_vals = [enc.get(vn, "") for vn in var_names]
-        ws_coded.append(row_vals)
+        ws_extended.append(row_vals)
 
-    for row in ws_coded.iter_rows(min_row=2, max_row=len(cohort)+1, min_col=1, max_col=len(var_names)):
+    for row in ws_extended.iter_rows(min_row=2, max_row=len(cohort)+1, min_col=1, max_col=len(var_names)):
         for cell in row:
             cell.font = f_data
             cell.border = border_thin
             cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # ---------------------------------------------------------
-    # Sheet 2: Codebook (Variable Dictionary)
+    # Sheet 3: Codebook_Dictionary (Variable Dictionary)
     # ---------------------------------------------------------
     ws_cb = wb.create_sheet(title="Codebook_Dictionary")
     ws_cb.views.sheetView[0].showGridLines = True
-    cb_headers = ["Variable Name (SPSS)", "Variable Label (Description)", "Type", "Measure Level", "Value Labels / Coding Scheme"]
+    cb_headers = ["SPSS Variable", "Scope / Proposal Status", "Variable Description", "Type", "Measure Level", "Value Labels / Coding Scheme"]
     ws_cb.append(cb_headers)
     for col_idx in range(1, len(cb_headers) + 1):
         cell = ws_cb.cell(row=1, column=col_idx)
@@ -452,29 +624,33 @@ def build_spss_excel(cohort, output_path):
         cell.fill = fill_blue
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
+    core_map = {spec["source_name"]: spec for spec in PROPOSAL_CORE_SPECS}
+
     for item in CODEBOOK:
+        vn = item["name"]
+        scope = "Core Proposal (مصوب پروپوزال)" if vn in core_map else "Extended (تکمیلی مقاله)"
         vals_str = "\n".join([f"{k} = {v}" for k, v in item["values"].items()]) if item["values"] else "Numeric Score"
         ws_cb.append([
-            item["name"],
+            vn,
+            scope,
             item["label"],
             item["type"],
             item["measure"],
             vals_str
         ])
 
-    for row in ws_cb.iter_rows(min_row=2, max_row=len(CODEBOOK)+1, min_col=1, max_col=5):
+    for row in ws_cb.iter_rows(min_row=2, max_row=len(CODEBOOK)+1, min_col=1, max_col=6):
         for cell in row:
             cell.font = f_data
             cell.border = border_thin
             cell.alignment = Alignment(vertical="center", wrap_text=True)
 
     # ---------------------------------------------------------
-    # Sheet 3: Raw_Labels_Reference
+    # Sheet 4: Raw_Labels_Reference
     # ---------------------------------------------------------
     ws_raw = wb.create_sheet(title="Raw_Labels_Reference")
     ws_raw.views.sheetView[0].showGridLines = True
 
-    # Detailed headers including explicit English & Persian presentation order
     raw_var_names = [
         "id", "timestamp", "appliance_order", "appliance_order_fa",
         "seq_permutation", "order_app_1", "order_app_2", "order_app_3"
@@ -499,60 +675,144 @@ def build_spss_excel(cohort, output_path):
             cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Auto-fit columns
-    for ws in [ws_coded, ws_cb, ws_raw]:
+    for ws in [ws_core, ws_extended, ws_cb, ws_raw]:
         for col in ws.columns:
             max_len = max(len(str(cell.value or '')) for cell in col)
             col_letter = get_column_letter(col[0].column)
             ws.column_dimensions[col_letter].width = min(max(max_len + 3, 12), 45)
 
     wb.save(output_path)
-    print(f"✅ SPSS Coded Dataset & Codebook saved to: {output_path}")
+    print(f"✅ SPSS Coded Dataset saved to: {output_path}")
 
 # -------------------------------------------------------------
-# 5. GENERATE SPSS SYNTAX (.SPS)
+# 6. GENERATE COMPLETE SPSS SYNTAX (.SPS)
 # -------------------------------------------------------------
 def build_spss_syntax(output_path):
     lines = []
-    lines.append("* SPSS Syntax for Orthodontic Appliance Aesthetic Survey Dataset.")
-    lines.append("* Automatically applies Variable Labels, Value Labels, and Measurement Levels.\n")
+    lines.append("* =========================================================================.")
+    lines.append("* SPSS SYNTAX FOR ORTHODONTIC APPLIANCE AESTHETIC PERCEPTION THESIS.")
+    lines.append("* Supervised by Dr. Amirhossein Mirhashemi & Dr. Atefe Saffar Shahroudi.")
+    lines.append("* Statistical Consultant: Dr. Mohammad Javad Kharazifard (TUMS).")
+    lines.append("* Target Dataset: Proposal_Core_SPSS Sheet.")
+    lines.append("* =========================================================================.\n")
 
     # Variable labels
     lines.append("VARIABLE LABELS")
-    for item in CODEBOOK:
-        clean_label = item["label"].replace('"', "''")
-        lines.append(f'  {item["name"]} "{clean_label}"')
+    for spec in PROPOSAL_CORE_SPECS:
+        clean_label = spec["label"].replace('"', "''")
+        lines.append(f'  {spec["core_name"]} "{clean_label}"')
     lines.append(".\n")
 
     # Value labels
     lines.append("VALUE LABELS")
-    for item in CODEBOOK:
-        if item["values"]:
-            lines.append(f'  {item["name"]}')
-            for k, v in item["values"].items():
+    for spec in PROPOSAL_CORE_SPECS:
+        if spec["values"]:
+            lines.append(f'  {spec["core_name"]}')
+            for k, v in spec["values"].items():
                 clean_v = str(v).replace('"', "''")
                 lines.append(f'    {k} "{clean_v}"')
     lines.append(".\n")
 
     # Variable Level
     lines.append("VARIABLE LEVEL")
-    for item in CODEBOOK:
-        m = item["measure"].upper()
+    for spec in PROPOSAL_CORE_SPECS:
+        m = spec["measure"].upper()
         if m in ("SCALE", "ORDINAL", "NOMINAL"):
-            lines.append(f'  {item["name"]} ({m})')
+            lines.append(f'  {spec["core_name"]} ({m})')
     lines.append(".\n")
 
     lines.append("EXECUTE.\n")
 
+    # Statistical Analyses
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("* 1. DESCRIPTIVE STATISTICS & FREQUENCIES.")
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("FREQUENCIES VARIABLES=gender age_group edu_level seq_order dentist_screen ortho_history eligible_proposal")
+    lines.append("  /ORDER=ANALYSIS.\n")
+    lines.append("DESCRIPTIVES VARIABLES=vas_aligner vas_ceramic vas_metal")
+    lines.append("  /STATISTICS=MEAN STDDEV MIN MAX SEMEAN.\n")
+
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("* 2. TEST OF NORMALITY (SHAPIRO-WILK).")
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("EXAMINE VARIABLES=vas_aligner vas_ceramic vas_metal")
+    lines.append("  /PLOT NPPLOT")
+    lines.append("  /STATISTICS DESCRIPTIVES.\n")
+
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("* 3. PRIMARY OBJECTIVE: REPEATED MEASURES ANOVA (WITHIN-SUBJECT: APPLIANCE).")
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("GLM vas_aligner vas_ceramic vas_metal")
+    lines.append("  /WSFACTOR=Appliance 3 Polynomial")
+    lines.append("  /METHOD=SSTYPE(3)")
+    lines.append("  /EMMEANS=TABLES(Appliance) COMPARE ADJ(BONFERRONI)")
+    lines.append("  /PRINT=DESCRIPTIVE ETASQ HOMOGENEITY")
+    lines.append("  /CRITERIA=ALPHA(.05)")
+    lines.append("  /WSDESIGN=Appliance.\n")
+
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("* 4. NON-PARAMETRIC ALTERNATIVE: FRIEDMAN TEST & POST-HOC WILCOXON.")
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("NPAR TESTS")
+    lines.append("  /FRIEDMAN=vas_aligner vas_ceramic vas_metal.\n")
+    lines.append("NPAR TESTS")
+    lines.append("  /WILCOXON=vas_aligner WITH vas_ceramic (PAIRED)")
+    lines.append("            vas_aligner WITH vas_metal (PAIRED)")
+    lines.append("            vas_ceramic WITH vas_metal (PAIRED)")
+    lines.append("  /CRITERIA=ALPHA(0.05).\n")
+
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("* 5. SECONDARY OBJECTIVES: EFFECTS OF GENDER, AGE, AND EDUCATION.")
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("GLM vas_aligner vas_ceramic vas_metal BY gender")
+    lines.append("  /WSFACTOR=Appliance 3 Polynomial")
+    lines.append("  /EMMEANS=TABLES(gender*Appliance) COMPARE(Appliance) ADJ(BONFERRONI)")
+    lines.append("  /WSDESIGN=Appliance")
+    lines.append("  /DESIGN=gender.\n")
+
+    lines.append("GLM vas_aligner vas_ceramic vas_metal BY age_group")
+    lines.append("  /WSFACTOR=Appliance 3 Polynomial")
+    lines.append("  /WSDESIGN=Appliance")
+    lines.append("  /DESIGN=age_group.\n")
+
+    lines.append("GLM vas_aligner vas_ceramic vas_metal BY edu_level")
+    lines.append("  /WSFACTOR=Appliance 3 Polynomial")
+    lines.append("  /WSDESIGN=Appliance")
+    lines.append("  /DESIGN=edu_level.\n")
+
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("* 6. ORDER EFFECT / COUNTERBALANCING VERIFICATION.")
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("GLM vas_aligner vas_ceramic vas_metal BY seq_order")
+    lines.append("  /WSFACTOR=Appliance 3 Polynomial")
+    lines.append("  /WSDESIGN=Appliance")
+    lines.append("  /DESIGN=seq_order.\n")
+
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("* 7. STRICT PROPOSAL ELIGIBILITY FILTER (EXCLUDING DENTISTS & PAST ORTHO).")
+    lines.append("* -------------------------------------------------------------------------.")
+    lines.append("USE ALL.")
+    lines.append("COMPUTE filter_$=(eligible_proposal = 1).")
+    lines.append("VARIABLE LABELS filter_$ 'eligible_proposal = 1 (FILTER)'.")
+    lines.append("VALUE LABELS filter_$ 0 'Not Selected' 1 'Selected'.")
+    lines.append("FORMATS filter_$ (f1.0).")
+    lines.append("FILTER BY filter_$.\n")
+    lines.append("GLM vas_aligner vas_ceramic vas_metal")
+    lines.append("  /WSFACTOR=Appliance 3 Polynomial")
+    lines.append("  /EMMEANS=TABLES(Appliance) COMPARE ADJ(BONFERRONI)")
+    lines.append("  /WSDESIGN=Appliance.\n")
+    lines.append("FILTER OFF.")
+    lines.append("EXECUTE.\n")
+
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
-    print(f"✅ SPSS Syntax (.sps) file saved to: {output_path}")
+    print(f"✅ SPSS Syntax saved to: {output_path}")
 
 # -------------------------------------------------------------
 # MAIN EXECUTION
 # -------------------------------------------------------------
 def main():
     raw_data = fetch_data()
-    # Filter official study cohort from 2026-10-22
     cohort = [r for r in raw_data if (r.get("timestamp") or "").split(" ")[0] >= "2026-10-22"]
     cohort.sort(key=lambda x: x.get("id", 0))
 
